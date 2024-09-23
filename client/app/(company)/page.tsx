@@ -73,7 +73,7 @@ export async function generateMetadata(): Promise<Metadata> {
     ],
     openGraph: {
       ...baseOpenGraph,
-      title: "Trang Chủ",
+      title: "Trang Chủ | Công ty TNHH MTV TM Sản Xuất I.C.H",
       description:
         "I.C.H là đơn vị sản xuất gia công mỹ phẩm hàng đầu Việt Nam, với quy trình sản xuất đạt chuẩn cGMP, công thức độc quyền, nguyên liệu thiên nhiên.",
       url: configs.NEXT_PUBLIC_CLIENT_URL,
@@ -81,8 +81,8 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [
         {
           url: configs.NEXT_PUBLIC_COMPANY_IMAGE_URL,
-          // width: 800,
-          // height: 600,
+          width: 4096,
+          height: 2986,
         },
       ],
     },
