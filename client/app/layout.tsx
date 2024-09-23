@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistMono.variable} font-sans`}>{children}</body>
+      <body className={`${geistMono.variable} `}>{children}</body>
     </html>
   );
 }

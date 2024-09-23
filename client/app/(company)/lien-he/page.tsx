@@ -10,7 +10,7 @@ const Contact = () => {
   return (
     <section className="bg-muted/40">
       <GoogleMapsEmbed
-        apiKey={configs.NEXT_PUBLIC_GOOGLE_MAP_KEY!}
+        apiKey={configs.NEXT_GOOGLE_MAP_KEY!}
         height={500}
         width="100%"
         zoom="17"

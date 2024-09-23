@@ -24,6 +24,9 @@ import { Button } from "@/components/ui/button";
 import { EightStepProcessCarousel } from "./step-process-carousel";
 import { PostTabs } from "./post-tabs";
 import { ContactForm } from "./contact-form";
+import { Metadata } from "next";
+import configs from "@/config";
+import { baseOpenGraph } from "../shared-metadata";
 
 const outstandingProductsData = [
   {
@@ -51,6 +54,40 @@ const outstandingProductsData = [
     imageUrl: "/products/product-2.png",
   },
 ];
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Trang Chủ",
+    description:
+      "I.C.H là đơn vị sản xuất gia công mỹ phẩm hàng đầu Việt Nam, với quy trình sản xuất đạt chuẩn cGMP, công thức độc quyền, nguyên liệu thiên nhiên.",
+    alternates: {
+      canonical: configs.NEXT_PUBLIC_CLIENT_URL,
+    },
+    keywords: [
+      "sản xuất",
+      "gia công",
+      "gia công mỹ phẩm",
+      "sản xuất mỹ phẩm",
+      "ich",
+      "i.c.h",
+    ],
+    openGraph: {
+      ...baseOpenGraph,
+      title: "Trang Chủ",
+      description:
+        "I.C.H là đơn vị sản xuất gia công mỹ phẩm hàng đầu Việt Nam, với quy trình sản xuất đạt chuẩn cGMP, công thức độc quyền, nguyên liệu thiên nhiên.",
+      url: configs.NEXT_PUBLIC_CLIENT_URL,
+      siteName: "Công ty TNHH MTV TM Sản Xuất I.C.H",
+      images: [
+        {
+          url: configs.NEXT_PUBLIC_COMPANY_IMAGE_URL,
+          // width: 800,
+          // height: 600,
+        },
+      ],
+    },
+  };
+}
 
 const HomePage = () => {
   return (

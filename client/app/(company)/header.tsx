@@ -7,17 +7,7 @@ import { NavDesktop } from "./nav-desktop";
 const Header = () => {
   return (
     <>
-      {/* <div className="bg-primary dark:bg-primary-foreground text-white px-2 hidden md:block">
-        <div className="flex justify-between items-center lg:mx-auto lg:max-w-7xl text-sm py-1">
-          <p>Uy tín - Chất lượng - Độc quyền</p>
-          <div className="flex h-5 items-center space-x-1 text-xs">
-            <p>contact@ich.vn</p>
-            <Separator orientation="vertical" />
-            <p>(+84) 707 000 004</p>
-          </div>
-        </div>
-      </div> */}
-      <header className="backdrop-saturate-[1.8] sticky top-0 z-50 border-b backdrop-blur bg-background/60">
+      <header className="sticky top-0 z-50 bg-white">
         <div className="lg:mx-auto lg:max-w-7xl flex justify-between items-center p-2">
           <Logo className="relative z-10" />
 
