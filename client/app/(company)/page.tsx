@@ -63,14 +63,14 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: configs.NEXT_PUBLIC_CLIENT_URL,
     },
-    keywords: [
-      "sản xuất",
-      "gia công",
-      "gia công mỹ phẩm",
-      "sản xuất mỹ phẩm",
-      "ich",
-      "i.c.h",
-    ],
+    // keywords: [
+    //   "sản xuất",
+    //   "gia công",
+    //   "gia công mỹ phẩm",
+    //   "sản xuất mỹ phẩm",
+    //   "ich",
+    //   "i.c.h",
+    // ],
     openGraph: {
       ...baseOpenGraph,
       title: "Trang Chủ | Công ty TNHH MTV TM Sản Xuất I.C.H",
@@ -81,8 +81,21 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [
         {
           url: configs.NEXT_PUBLIC_COMPANY_IMAGE_URL,
-          width: 4096,
-          height: 2986,
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+    twitter: {
+      ...baseOpenGraph,
+      title: "Trang Chủ | Công ty TNHH MTV TM Sản Xuất I.C.H",
+      description:
+        "I.C.H là đơn vị sản xuất gia công mỹ phẩm hàng đầu Việt Nam, với quy trình sản xuất đạt chuẩn cGMP, công thức độc quyền, nguyên liệu thiên nhiên.",
+      images: [
+        {
+          url: configs.NEXT_PUBLIC_COMPANY_IMAGE_URL,
+          width: 1200,
+          height: 630,
         },
       ],
     },
