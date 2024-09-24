@@ -63,14 +63,14 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: configs.NEXT_PUBLIC_CLIENT_URL,
     },
-    // keywords: [
-    //   "sản xuất",
-    //   "gia công",
-    //   "gia công mỹ phẩm",
-    //   "sản xuất mỹ phẩm",
-    //   "ich",
-    //   "i.c.h",
-    // ],
+    keywords: [
+      "sản xuất",
+      "gia công",
+      "gia công mỹ phẩm",
+      "sản xuất mỹ phẩm",
+      "ich",
+      "i.c.h",
+    ],
     openGraph: {
       ...baseOpenGraph,
       title: "Trang Chủ | Công ty TNHH MTV TM Sản Xuất I.C.H",

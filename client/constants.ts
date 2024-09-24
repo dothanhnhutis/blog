@@ -1,3 +1,6 @@
+import { baseOpenGraph } from "./app/shared-metadata";
+import configs from "./config";
+
 export default {
   url: "https://ichvietnam.vn",
   company: "Công ty TNHH MTV TM Sản Xuất I.C.H",
@@ -12,5 +15,10 @@ export default {
     youtube: "https://www.youtube.com/@nhamaygiacongmyphamich",
     facebook: "https://www.facebook.com/mindvietnam",
     zalo: "https://zalo.me/0906640464",
+  },
+  seo: {
+    defaultTitle: "ICH - Gia Công, Sản Xuất Mỹ Phẩm",
+    defaultDescription:
+      "I.C.H là đơn vị sản xuất gia công mỹ phẩm hàng đầu Việt Nam, với quy trình sản xuất đạt chuẩn cGMP, công thức độc quyền, nguyên liệu thiên nhiên.",
   },
 };

@@ -9,6 +9,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans1: ["var(--font-montserrat)"],
+      },
       screens: {
         // xs: "450px",
         xs: "560px",
