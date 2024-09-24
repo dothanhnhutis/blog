@@ -1,0 +1,51 @@
+@url = http://localhost:4000/api/v1
+@cookie = sid=88435fdf642427e3d34666261732a87b.a1cafad4e74c17c99eee7793a089d1333abe7e928d593a2a94f4acdcf9d3ec526488fc241ac39c17c7a2173217d112805c92a411836710958bc6acec1329a1955eef9c2f9a341f0fb8fbd68806d7de1b; Path=/; Expires=Wed, 09 Oct 2024 16:08:52 GMT; HttpOnly
+###
+POST {{url}}/auth/signup HTTP/1.1
+Content-Type: application/json
+
+{
+    "firstName": "Nhut",
+    "lastName": "Thanh",
+    "email": "gaconght@gmail.com",
+    "password": "@Abc123123"
+}
+###
+
+POST {{url}}/auth/signin HTTP/1.1
+Content-Type: application/json
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36
+X-Forwarded-For: 192.168.100.10
+
+{
+    "email": "gaconght@gmail.com",
+    "password": "@Abc123123"
+}
+###
+
+GET {{url}}/users/me HTTP/1.1
+Content-Type: application/json
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36
+X-Forwarded-For: 192.168.100.10
+Cookie: {{cookie}}
+###
+
+DELETE {{url}}/auth/signout HTTP/1.1
+Content-Type: application/json
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36
+X-Forwarded-For: 192.168.100.10
+Cookie: session=ff58cb4f1cf220c8e2bce6746eca62b8.712e94e951b329b66ddcde83837c7d4014e8b3e78f33c66cb04eb1dc78df69996ef66082e63c746ab23a958184e9222b4f34a135f9a4d254601c7f788d4673e630ed8612ae3104182dc789f5bcd3453dc6aeb8605f89cc97db95f28c0f300976; Path=/; Expires=Sat, 05 Oct 2024 17:59:37 GMT; HttpOnly
+###
+GET {{url}}/users/sessions HTTP/1.1
+Content-Type: application/json
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36
+X-Forwarded-For: 192.168.100.10
+Cookie: {{cookie}}
+###
+
+DELETE  {{url}}/users/sessions/7d7c1070-b111-46e9-95de-933288be76be HTTP/1.1
+Content-Type: application/json
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36
+X-Forwarded-For: 192.168.100.10
+Cookie: {{cookie}}
+###
