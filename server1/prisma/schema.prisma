@@ -90,3 +90,22 @@ model Profile {
 
   @@index([userId])
 }
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  title       String
+  description String[]   @default([])
+  status      TaskStatus
+
+  // assignedTo   User? @relation(fields: [assignedToId], references: [id])
+  // assignedToId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

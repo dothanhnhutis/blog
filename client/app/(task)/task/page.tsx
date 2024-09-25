@@ -1,3 +1,5 @@
+"use client";
+import { useTask } from "@/components/providers/task-provider";
 import {
   BadgeAlertIcon,
   BadgeCheckIcon,
@@ -9,8 +11,13 @@ import {
 import React from "react";
 
 const TastPage = () => {
+  const {
+    data: { connected, tasks },
+  } = useTask();
+
   return (
     <div>
+      {connected ? <p>connected</p> : <p>disconnected</p>}
       <div className="sticky top-0 left-0 right-0 flex items-center gap-2 p-3 bg-white border-b">
         <div className="size-10 rounded-full bg-red-500 shrink-0"></div>
         <div className="flex items-center justify-between w-full">
@@ -18,6 +25,7 @@ const TastPage = () => {
           <EllipsisIcon className="shrink-0 size-5" />
         </div>
       </div>
+
       <div className="grid gap-3 p-2">
         <div className="rounded-lg bg-green-200/50 p-3">
           <div className="flex gap-2">
