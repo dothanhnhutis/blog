@@ -27,7 +27,7 @@ import {
 import { rateLimitRecover, rateLimitSendEmail } from "@/middleware/rateLimit";
 import { readUserById } from "@/controllers/user";
 import checkPermission from "@/middleware/checkPermission";
-import { sendVerificationCode } from "@/controllers/auth";
+// import { sendVerificationCode } from "@/controllers/auth";
 import { sendVerificationEmailSchema } from "@/schema/auth";
 
 const router: Router = express.Router();
@@ -75,12 +75,12 @@ function userRouter(): Router {
     validateResource(changePasswordSchema),
     changePassword
   );
-  router.post(
-    "/users/change-email/send",
-    authMiddleware(),
-    validateResource(sendVerificationEmailSchema),
-    sendVerificationEmail
-  );
+  // router.post(
+  //   "/users/change-email/send",
+  //   authMiddleware(),
+  //   validateResource(sendVerificationEmailSchema),
+  //   sendVerificationEmail
+  // );
 
   // GET /users/email/resend
   // POST /users/change-email {email:string; otp?:string}

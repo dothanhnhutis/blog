@@ -1,6 +1,3 @@
-import { baseOpenGraph } from "./app/shared-metadata";
-import configs from "./config";
-
 export default {
   url: "https://ichvietnam.vn",
   company: "Công ty TNHH MTV TM Sản Xuất I.C.H",

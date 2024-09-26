@@ -6,7 +6,6 @@ import {
   recoverAccount,
   resetPassword,
   sendReactivateAccount,
-  sendVerificationCode,
   signIn,
   signInWithGoogle,
   signInWithGoogleCallBack,
@@ -19,7 +18,6 @@ import {
   recoverAccountSchema,
   resetPasswordSchema,
   sendReActivateAccountSchema,
-  sendVerificationCodeSchema,
   signinSchema,
   signupSchema,
 } from "@/schema/auth";

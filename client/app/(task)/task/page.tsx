@@ -1,4 +1,5 @@
 "use client";
+import { Logo } from "@/components/logo";
 import { useTask } from "@/components/providers/task-provider";
 import {
   BadgeAlertIcon,
@@ -11,17 +12,27 @@ import {
 import React from "react";
 
 const TastPage = () => {
-  const {
-    data: { connected, tasks },
-  } = useTask();
+  const { connected, tasks } = useTask();
 
   return (
     <div>
-      {connected ? <p>connected</p> : <p>disconnected</p>}
       <div className="sticky top-0 left-0 right-0 flex items-center gap-2 p-3 bg-white border-b">
-        <div className="size-10 rounded-full bg-red-500 shrink-0"></div>
+        <Logo className="rounded-full overflow-hidden shadow" />
         <div className="flex items-center justify-between w-full">
-          <p>Phòng Khóm</p>
+          <div>
+            <p>Phòng Khóm</p>
+            {connected ? (
+              <div className="flex gap-1 items-center">
+                <div className="size-2 rounded-full shrink-0 bg-green-400"></div>
+                <p className="text-sm">connected</p>
+              </div>
+            ) : (
+              <div className="flex gap-1 items-center">
+                <div className="size-2 rounded-full shrink-0 bg-red-400"></div>
+                <p className="text-sm">disconnected</p>
+              </div>
+            )}
+          </div>
           <EllipsisIcon className="shrink-0 size-5" />
         </div>
       </div>
@@ -41,21 +52,7 @@ const TastPage = () => {
               <p className="text-base font-medium ">
                 Sử dụng Chromecast hoặc thiết bị tương tự: Bạn có thể sử dụng
                 Google Chromecast hoặc thiết bị phát nội dung tương tự để truyền
-                nội dung từ máy tính lên TV qua mạng Wi-Fi. Sử dụng Chromecast
-                hoặc thiết bị tương tự: Bạn có thể sử dụng Google Chromecast
-                hoặc thiết bị phát nội dung tương tự để truyền nội dung từ máy
-                tính lên TV qua mạng Wi-Fi. Sử dụng Chromecast hoặc thiết bị
-                tương tự: Bạn có thể sử dụng Google Chromecast hoặc thiết bị
-                phát nội dung tương tự để truyền nội dung từ máy tính lên TV qua
-                mạng Wi-Fi. Sử dụng Chromecast hoặc thiết bị tương tự: Bạn có
-                thể sử dụng Google Chromecast hoặc thiết bị phát nội dung tương
-                tự để truyền nội dung từ máy tính lên TV qua mạng Wi-Fi. Sử dụng
-                Chromecast hoặc thiết bị tương tự: Bạn có thể sử dụng Google
-                Chromecast hoặc thiết bị phát nội dung tương tự để truyền nội
-                dung từ máy tính lên TV qua mạng Wi-Fi. Sử dụng Chromecast hoặc
-                thiết bị tương tự: Bạn có thể sử dụng Google Chromecast hoặc
-                thiết bị phát nội dung tương tự để truyền nội dung từ máy tính
-                lên TV qua mạng Wi-Fi.
+                nội dung từ máy tính lên TV qua mạng Wi-Fi.
               </p>
             </div>
           </div>

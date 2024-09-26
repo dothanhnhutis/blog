@@ -44,6 +44,8 @@ model User {
   // products                 Product[]
   mFA                      MFA?
   profile                  Profile?
+  taskAssignees            TaskAssignees[]
+  task                     Task[]
 
   @@index([email, passwordResetToken, reActiveToken])
 }
@@ -92,20 +94,53 @@ model Profile {
 }
 
 enum TaskStatus {
-  PENDING
-  IN_PROGRESS
+  TO_DO
+  ON_PROGRESS
+  IN_REVIEW
   COMPLETED
 }
 
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model TaskAssignees {
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  task   Task   @relation(fields: [taskId], references: [id])
+  taskId String
+
+  @@id([userId, taskId])
+}
+
 model Task {
-  id          String     @id @default(uuid())
-  title       String
-  description String[]   @default([])
-  status      TaskStatus
+  id            String          @id @default(uuid())
+  taskName      String
+  description   String
+  status        TaskStatus
+  label         String
+  startDate     DateTime
+  dueDate       DateTime
+  priority      TaskPriority
+  createdBy     User            @relation(fields: [createdId], references: [id])
+  createdId     String
+  subTask       SubTask[]
+  taskAssignees TaskAssignees[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
 
-  // assignedTo   User? @relation(fields: [assignedToId], references: [id])
-  // assignedToId Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model SubTask {
+  id           String   @id @default(uuid())
+  subTaskName  String
+  enableUpload Boolean
+  parentTask   Task     @relation(fields: [parentTaskId], references: [id])
+  parentTaskId String
+  message      String   @default("")
+  isDone       Boolean  @default(false)
+  attachment   String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

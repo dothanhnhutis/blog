@@ -1,23 +1,17 @@
-import React, { useContext } from "react";
-import { createSocket } from "@/lib/socket";
-import { boolean } from "zod";
-import configs from "@/config";
+"use client";
+import React from "react";
 import { Socket } from "socket.io-client";
+import configs from "@/config";
+import { createSocket } from "@/lib/socket";
 
-interface TaskData {
+interface ITaskContext {
   connected: boolean;
   tasks: string[];
 }
 
-interface ITaskContext {
-  data: TaskData;
-}
-
 const initTaskContext: ITaskContext = {
-  data: {
-    connected: false,
-    tasks: [],
-  },
+  connected: false,
+  tasks: [],
 };
 
 const taskContext = React.createContext<ITaskContext>(initTaskContext);
@@ -33,7 +27,7 @@ type TTaskProvider = {
 
 const TaskProvider = ({ children }: TTaskProvider) => {
   const [socket, setSocket] = React.useState<Socket | null>(null);
-  const [taskData, setTaskData] = React.useState<TaskData>({
+  const [taskData, setTaskData] = React.useState<ITaskContext>({
     connected: false,
     tasks: [],
   });
@@ -44,8 +38,7 @@ const TaskProvider = ({ children }: TTaskProvider) => {
   function onDisconnect() {
     setTaskData((prev) => ({ ...prev, connected: false }));
   }
-  function onTaskEvent(value: any) {
-    //   setFooEvents((previous) => [...previous, value]);
+  function onTaskEvent(value: string) {
     console.log(value);
   }
 
@@ -60,10 +53,11 @@ const TaskProvider = ({ children }: TTaskProvider) => {
     });
     setSocket(newSocket);
     newSocket.connect();
+    newSocket.emit("joinRoom", "phong_chinh");
 
-    newSocket.off("connect", onConnect);
-    newSocket.off("disconnect", onDisconnect);
-    newSocket.off("phong_chinh", onTaskEvent);
+    newSocket.on("connect", onConnect);
+    newSocket.on("disconnect", onDisconnect);
+    newSocket.on("message", onTaskEvent);
   };
 
   React.useEffect(() => {
@@ -73,19 +67,13 @@ const TaskProvider = ({ children }: TTaskProvider) => {
         socket.disconnect();
         socket.off("connect", onConnect);
         socket.off("disconnect", onDisconnect);
-        socket.off("phong_chinh", onTaskEvent);
+        socket.off("message", onTaskEvent);
       }
     };
   }, []);
 
   return (
-    <taskContext.Provider
-      value={{
-        data: taskData,
-      }}
-    >
-      {children}
-    </taskContext.Provider>
+    <taskContext.Provider value={taskData}>{children}</taskContext.Provider>
   );
 };
 

@@ -8,7 +8,7 @@ export const createSocket = ({ url, namespace, ...props }: TCreateSocket) => {
   const URL = !namespace
     ? url
     : namespace.startsWith("/")
-    ? namespace
-    : "/" + namespace;
+    ? url + namespace
+    : url + "/" + namespace;
   return io(URL, props);
 };
