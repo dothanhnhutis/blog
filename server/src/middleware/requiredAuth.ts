@@ -1,8 +1,12 @@
 import { RequestHandler as Middleware } from "express";
 import { NotAuthorizedError, PermissionError } from "../error-handler";
 
+type TAuthMiddleware = {
+  emailVerified: boolean;
+};
+
 export const authMiddleware =
-  (props?: { emailVerified?: boolean | undefined }): Middleware =>
+  (props?: Partial<TAuthMiddleware>): Middleware =>
   async (req, _, next) => {
     if (!req.user) {
       throw new NotAuthorizedError();
@@ -12,10 +16,10 @@ export const authMiddleware =
       throw new PermissionError("Your email hasn't been verified");
     }
 
-    if (req.user.status == "Suspended") {
+    if (req.user.status == "SUSPENDED") {
       throw new PermissionError("Your account has been suspended.");
     }
-    if (req.user.status == "Disabled") {
+    if (req.user.status == "DISABLED") {
       throw new PermissionError(
         "Your account has been disabled. Please contact your administrator to restore your account"
       );

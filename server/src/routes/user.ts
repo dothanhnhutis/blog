@@ -12,6 +12,8 @@ import {
   enableMFAAccount,
   readAllSession,
   removeSession,
+  sendChangeEmail,
+  sendVerifyEmail,
   setupMFA,
 } from "@/controllers/current-user";
 import { authMiddleware } from "@/middleware/requiredAuth";
@@ -22,9 +24,14 @@ import {
   disconnectOauthProviderSchema,
   editProfileSchema,
   enableMFASchema,
+  sendChangeEmailSchema,
   setupMFASchema,
 } from "@/schema/user";
-import { rateLimitRecover, rateLimitSendEmail } from "@/middleware/rateLimit";
+import {
+  rateLimitSendChangeEmail,
+  rateLimitRecover,
+  rateLimitUserId,
+} from "@/middleware/rateLimit";
 import { readUserById } from "@/controllers/user";
 import checkPermission from "@/middleware/checkPermission";
 // import { sendVerificationCode } from "@/controllers/auth";
@@ -51,7 +58,7 @@ function userRouter(): Router {
   router.get(
     "/users/:id",
     authMiddleware(),
-    checkPermission(["Admin"]),
+    checkPermission(["ADMIN"]),
     readUserById
   );
 
@@ -75,22 +82,26 @@ function userRouter(): Router {
     validateResource(changePasswordSchema),
     changePassword
   );
-  // router.post(
-  //   "/users/change-email/send",
-  //   authMiddleware(),
-  //   validateResource(sendVerificationEmailSchema),
-  //   sendVerificationEmail
-  // );
-
-  // GET /users/email/resend
-  // POST /users/change-email {email:string; otp?:string}
-  // POST /users/change-email/send {email:string}
   router.post(
-    "/users/change-email",
+    "/users/verify-email/send",
+    rateLimitUserId,
     authMiddleware(),
+    sendVerifyEmail
+  );
+  router.post(
+    "/users/change-email/send",
+    rateLimitSendChangeEmail,
+    authMiddleware(),
+    validateResource(sendChangeEmailSchema),
+    sendChangeEmail
+  );
+  router.post(
+    "/users/change-email/otp",
+    authMiddleware({ emailVerified: true }),
     validateResource(changeEmailSchema),
     changeEmail
   );
+
   router.post(
     "/users/disconnect",
     authMiddleware(),

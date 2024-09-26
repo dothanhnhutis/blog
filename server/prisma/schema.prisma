@@ -9,17 +9,17 @@ datasource db {
 }
 
 enum Role {
-  Admin
-  Manager
-  Saler
-  Bloger
-  Customer
+  ADMIN
+  MANAGER
+  SALER
+  BLOGER
+  CUSTOMER
 }
 
 enum Status {
-  Active
-  Suspended
-  Disabled
+  ACTIVE
+  SUSPENDED
+  DISABLED
 }
 
 model User {
@@ -28,13 +28,12 @@ model User {
   emailVerified            Boolean         @default(false)
   emailVerificationExpires DateTime? //24h
   emailVerificationToken   String?         @unique
-  // hasPassword          Boolean         @default(false)
   password                 String?
   passwordResetToken       String?         @unique
   passwordResetExpires     DateTime? //4h
   mFAEnabled               Boolean         @default(false)
-  role                     Role            @default(Customer)
-  status                   Status          @default(Active)
+  role                     Role            @default(CUSTOMER)
+  status                   Status          @default(ACTIVE)
   reActiveToken            String?         @unique
   reActiveExpires          DateTime? //4h
   createdAt                DateTime        @default(now())
@@ -117,10 +116,10 @@ model TaskAssignees {
 
 model Task {
   id            String          @id @default(uuid())
-  taskName      String
+  name          String
   description   String
-  status        TaskStatus
-  label         String
+  status        TaskStatus      @default(TO_DO)
+  tag           String
   startDate     DateTime
   dueDate       DateTime
   priority      TaskPriority

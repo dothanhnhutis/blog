@@ -89,7 +89,6 @@ export const sendMail = async ({
         },
       },
     });
-    console.log(path.join(__dirname, "..", "/emails", template));
     await email.send({
       template: path.join(__dirname, "..", "/emails", template),
       message: { to: receiver },

@@ -110,6 +110,19 @@ export const changePasswordSchema = z.object({
     ),
 });
 
+export const sendChangeEmailSchema = z.object({
+  body: z
+    .object({
+      email: z
+        .string({
+          required_error: "Email is required",
+          invalid_type_error: "Email must be string",
+        })
+        .email("Invalid email"),
+    })
+    .strict(),
+});
+
 export const changeEmailSchema = z.object({
   body: z
     .object({
@@ -215,14 +228,15 @@ export const createUserSchema = z.object({
 export type SetupMFAReq = z.infer<typeof setupMFASchema>;
 export type EnableMFAReq = z.infer<typeof enableMFASchema>;
 export type ChangePasswordReq = z.infer<typeof changePasswordSchema>;
+export type SendChangeEmailReq = z.infer<typeof sendChangeEmailSchema>;
 export type ChangeEmailReq = z.infer<typeof changeEmailSchema>;
 export type DisconnectOauthProviderReq = z.infer<
   typeof disconnectOauthProviderSchema
 >;
 export type editProfileReq = z.infer<typeof editProfileSchema>;
 
-type Role = "Admin" | "Manager" | "Saler" | "Bloger" | "Customer";
-type UserStatus = "Active" | "Suspended" | "Disabled";
+type Role = "ADMIN" | "MANAGER" | "SALER" | "BLOGER" | "CUSTOMER";
+type UserStatus = "ACTIVE" | "SUSPENDED" | "DISABLED";
 export type User = {
   id: string;
   email: string;

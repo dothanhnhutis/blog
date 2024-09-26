@@ -27,7 +27,9 @@ import {
 } from "@/services/user";
 import { compareData, generateOTP, hashData, randId } from "@/utils/helper";
 import { uploadImageCloudinary } from "@/utils/image";
+import { signJWT } from "@/utils/jwt";
 import { generateMFA, TOTPType, validateMFA } from "@/utils/mfa";
+import { emaiEnum, sendMail } from "@/utils/nodemailer";
 import { generateGoogleAuthUrl, getGoogleUserProfile } from "@/utils/oauth";
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
@@ -62,7 +64,7 @@ export async function removeSession(
 export async function disactivate(req: Request, res: Response) {
   const { id } = req.user!;
   await editUserById(id, {
-    status: "Suspended",
+    status: "SUSPENDED",
   });
   if (req.sessionData) await deleteSession(id, req.sessionData.id);
   res.status(StatusCodes.OK).clearCookie(configs.SESSION_KEY_NAME).json({
@@ -235,51 +237,140 @@ export async function changePassword(
   }
 }
 
-export async function sendChangeEmail(req: Request, res: Response) {
-  const { email } = req.body;
-  const { id, emailVerified } = req.user!;
+export async function sendVerifyEmail(req: Request, res: Response) {
+  const { id, emailVerified, email, profile } = req.user!;
+  if (emailVerified) throw new BadRequestError("Verified email");
 
-  const emailExist = await getUserByEmail(email);
-  if (emailExist) throw new BadRequestError("Email already exists");
+  const user = await getUserById(id, {
+    emailVerificationToken: true,
+    emailVerificationExpires: true,
+  });
 
-  const otp: string = generateOTP();
+  if (!user || !user.emailVerificationToken || !user.emailVerificationExpires)
+    throw new BadRequestError("Send email verification failed");
 
-  await setDataInSecondCache(
-    `newEmail:${id}`,
-    `${email}:${hashData(otp)}`,
-    4 * 60 * 60000
+  let session: string = await randId();
+  let expires: number = Math.floor((Date.now() + 4 * 60 * 60 * 1000) / 1000);
+
+  if (user.emailVerificationExpires.getTime() < Date.now()) {
+    await editUserById(id, {
+      emailVerificationToken: session,
+      emailVerificationExpires: new Date(expires * 1000),
+    });
+  } else {
+    session = user.emailVerificationToken;
+    expires = user.emailVerificationExpires.getTime();
+  }
+
+  const token = signJWT(
+    {
+      type: "emailVerification",
+      session,
+      iat: expires,
+    },
+    configs.JWT_SECRET
   );
 
-  console.log(otp);
-  // sen otp
+  await sendMail({
+    template: emaiEnum.VERIFY_EMAIL,
+    receiver: email,
+    locals: {
+      username: profile!.firstName + " " + profile!.lastName,
+      verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
+    },
+  });
 
   return res.status(StatusCodes.OK).json({
-    message: "The verification code has been sent to your email.",
+    message: "Sent verification email",
   });
+}
+
+export async function sendChangeEmail(
+  req: Request<{}, {}, ChangeEmailReq["body"]>,
+  res: Response
+) {
+  const { id, emailVerified, email, profile } = req.user!;
+  const { email: newEmail } = req.body;
+
+  if (newEmail == email)
+    throw new BadRequestError(
+      "The new email cannot be the same as the current email"
+    );
+
+  const checkNewEmail = await getUserByEmail(newEmail);
+  if (checkNewEmail) throw new BadRequestError("Email already exists");
+
+  if (emailVerified) {
+    let otp: string = generateOTP();
+    await setDataInSecondCache(`otp:${newEmail}`, hashData(otp), 5 * 60 * 60);
+
+    await sendMail({
+      template: emaiEnum.OTP_VERIFY_ACCOUNT,
+      receiver: newEmail,
+      locals: {
+        otp,
+      },
+    });
+    return res.status(StatusCodes.OK).json({
+      message: "The verification code has been sent to your email.",
+    });
+  } else {
+    let session: string = await randId();
+    let expires: number = Math.floor((Date.now() + 4 * 60 * 60 * 1000) / 1000);
+
+    await editUserById(id, {
+      email: newEmail,
+      emailVerificationToken: session,
+      emailVerificationExpires: new Date(expires * 1000),
+    });
+
+    const token = signJWT(
+      {
+        type: "emailVerification",
+        session,
+        iat: expires,
+      },
+      configs.JWT_SECRET
+    );
+
+    await sendMail({
+      template: emaiEnum.VERIFY_EMAIL,
+      receiver: newEmail,
+      locals: {
+        username: profile!.firstName + " " + profile!.lastName,
+        verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
+      },
+    });
+    return res.status(StatusCodes.OK).json({
+      message: "Sent verification email",
+    });
+  }
 }
 
 export async function changeEmail(
   req: Request<{}, {}, ChangeEmailReq["body"]>,
   res: Response
 ) {
-  const { email, otp } = req.body;
-  const { id } = req.user!;
+  const { email: newEmail, otp } = req.body;
+  const { id, email } = req.user!;
 
-  if (email == req.user!.email)
+  if (email == newEmail)
     throw new BadRequestError(
       "The new email cannot be the same as the current email"
     );
 
-  const checkNewEmail = await getUserByEmail(email);
+  const checkNewEmail = await getUserByEmail(newEmail);
   if (checkNewEmail) throw new BadRequestError("Email already exists");
 
-  const hashOtp = await getDataCache(`otp:${email}`);
+  const hashOtp = await getDataCache(`otp:${newEmail}`);
   if (!hashOtp || !compareData(hashOtp, otp))
     throw new BadRequestError("Invalid otp code");
 
   await editUserById(id, {
-    email,
+    email: newEmail,
   });
+
+  await deteleDataCache(`otp:${newEmail}`);
 
   return res.status(StatusCodes.OK).json({
     message: "Update email success",

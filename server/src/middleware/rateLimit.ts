@@ -1,8 +1,5 @@
-import {
-  RecoverAccountReq,
-  SendReActivateAccountReq,
-  SendVerificationCodeReq,
-} from "@/schema/auth";
+import { RecoverAccountReq, SendReActivateAccountReq } from "@/schema/auth";
+import { SendChangeEmailReq } from "@/schema/user";
 import { Request } from "express";
 import { rateLimit } from "express-rate-limit";
 // import { CreateContact } from "@/schemas/contact.schema";
@@ -20,21 +17,21 @@ import { rateLimit } from "express-rate-limit";
 //   },
 // });
 
-export const rateLimitSendOtpSignUp = rateLimit({
-  windowMs: 60000,
-  limit: 1,
-  standardHeaders: "draft-7",
-  legacyHeaders: false,
-  keyGenerator: function (
-    req: Request<{}, {}, SendVerificationCodeReq["body"]>
-  ) {
-    const currentUser = req.user!;
-    return currentUser.id;
-  },
-  handler: (req, res, next, options) => {
-    return res.status(options.statusCode).json({ message: options.message });
-  },
-});
+// export const rateLimitSendOtpSignUp = rateLimit({
+//   windowMs: 60000,
+//   limit: 1,
+//   standardHeaders: "draft-7",
+//   legacyHeaders: false,
+//   keyGenerator: function (
+//     req: Request<{}, {}, SendVerificationCodeReq["body"]>
+//   ) {
+//     const currentUser = req.user!;
+//     return currentUser.id;
+//   },
+//   handler: (req, res, next, options) => {
+//     return res.status(options.statusCode).json({ message: options.message });
+//   },
+// });
 
 export const rateLimitRecover = rateLimit({
   windowMs: 1 * 60000,
@@ -64,14 +61,13 @@ export const rateLimitSendReActivateAccount = rateLimit({
   },
 });
 
-export const rateLimitSendEmail = rateLimit({
+export const rateLimitSendChangeEmail = rateLimit({
   windowMs: 60000,
   limit: 1,
   standardHeaders: "draft-7",
   legacyHeaders: false,
-  keyGenerator: function (req: Request) {
-    const currentUser = req.user!;
-    return currentUser.id;
+  keyGenerator: function (req: Request<{}, {}, SendChangeEmailReq["body"]>) {
+    return req.body.email;
   },
   handler: (req, res, next, options) => {
     return res.status(options.statusCode).json({ message: options.message });
