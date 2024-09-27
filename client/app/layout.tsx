@@ -16,6 +16,9 @@ import constants from "@/constants";
 // });
 
 import { Montserrat } from "next/font/google";
+import { ThemeProvider } from "next-themes";
+import { TankStackProvider } from "@/components/providers/tankStack-provider";
+import { Toaster } from "@/components/ui/sonner";
 const montserrat = Montserrat({
   subsets: ["latin"],
   display: "swap",
@@ -44,7 +47,19 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${montserrat.variable} `}
     >
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange={false}
+        >
+          <TankStackProvider>
+            {children}
+            <Toaster visibleToasts={5} richColors />
+          </TankStackProvider>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

@@ -9,7 +9,6 @@ import {
   signIn,
   signInWithGoogle,
   signInWithGoogleCallBack,
-  signOut,
   signUp,
   verifyEmail,
 } from "@/controllers/auth";
@@ -54,8 +53,6 @@ function authRouter(): Router {
     validateResource(sendReActivateAccountSchema),
     sendReactivateAccount
   );
-
-  router.delete("/auth/signout", signOut);
 
   return router;
 }

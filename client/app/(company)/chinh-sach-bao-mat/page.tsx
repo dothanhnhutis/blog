@@ -1,4 +1,5 @@
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import constants from "@/constants";
 import Image from "next/image";
 const PrivacyPolicy = () => {
   return (
@@ -75,16 +76,16 @@ const PrivacyPolicy = () => {
             Địa chỉ đơn vị quản trị thông tin
           </h3>
           <p className="text-base font-light text-black-100 [&:not(:first-child)]:mt-6">
-            Công ty TNHH MTV TM Sản Xuất I.C.H
+            {constants.company}
           </p>
           <p className="text-base font-light text-black-100 [&:not(:first-child)]:mt-6">
-            Địa chỉ: 159 Nguyễn Đình Chiễu, Khóm 3, Phường 4, Sóc Trăng.
+            Địa chỉ: {constants.addressCompany}
           </p>
           <p className="text-base font-light text-black-100 [&:not(:first-child)]:mt-6">
-            Hotline: 070.700.0004
+            Hotline: {constants.phoneNumberCompany}
           </p>
           <p className="text-base font-light text-black-100 [&:not(:first-child)]:mt-6">
-            Email: ichcosmetic@gmail.com
+            Email: {constants.emailCompany}
           </p>
           <h3 className="text-lg text-blue-400 font-bold [&:not(:first-child)]:mt-6">
             I.C.H sử dụng cookie
@@ -153,20 +154,17 @@ const PrivacyPolicy = () => {
             nào từ phía cơ quan có thẩm quyền nhưng vẫn phối hợp bảo mật thông
             tin tốt nhất có thể.
           </p>
-          <p className="text-xl font-light text-black-100 mb-3 mt-32">
-            <strong className="font-bold">
-              CÔNG TY TNHH MTV TM SẢN XUẤT I.C.H
-            </strong>
+          <p className="text-xl font-light text-black-100 mb-3 mt-32 ">
+            <strong className="font-bold">{constants.company}</strong>
           </p>
           <p className="text-sm font-light text-black-100 mb-3">
-            Văn phòng & Nhà máy: 159 Nguyễn Đình Chiễu, Khóm 3, Phường 4, Sóc
-            Trăng.
+            Văn phòng & Nhà máy: {constants.addressCompany}
           </p>
           <p className="text-sm font-light text-black-100 mb-3 truncate">
-            Hotline: 0707.000.004
+            Hotline: {constants.phoneNumberCompany}
           </p>
           <p className="text-sm font-light text-black-100 mb-3 truncate">
-            Email: ichcosmetic@gmail.com
+            Email: {constants.emailCompany}
           </p>
         </div>
       </div>

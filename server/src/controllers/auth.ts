@@ -189,10 +189,10 @@ export async function signIn(
       throw new BadRequestError("MFA code is an unrecognized key in body");
   }
 
-  if (user.status == "Suspended")
+  if (user.status == "SUSPENDED")
     throw new BadRequestError("Your account is currently closed");
 
-  if (user.status == "Disabled")
+  if (user.status == "DISABLED")
     throw new BadRequestError(
       "Your account has been disabled. Please contact the administrator"
     );
@@ -215,17 +215,6 @@ export async function signIn(
     .json({
       message: "Sign in success",
     });
-}
-
-export async function signOut(req: Request, res: Response) {
-  if (req.sessionKey) await deleteSessionByKey(req.sessionKey);
-  res
-    .status(StatusCodes.OK)
-    .clearCookie(configs.SESSION_KEY_NAME)
-    .json({
-      message: "Sign out successful",
-    })
-    .end();
 }
 
 export async function resetPassword(
@@ -330,7 +319,7 @@ export async function reActivateAccount(
   const user = await getUserByToken(data.type, data.session);
   if (!user) throw new NotFoundError();
   await editUserById(user.id, {
-    status: "Active",
+    status: "ACTIVE",
     reActiveExpires: new Date(),
     reActiveToken: null,
   });
@@ -385,12 +374,12 @@ export async function signInWithGoogleCallBack(
     user = await insertUserWithGoogle(userInfo);
   }
 
-  if (user.status == "Disabled")
+  if (user.status == "DISABLED")
     throw new BadRequestError(
       "Your account has been locked please contact the administrator"
     );
 
-  if (user.status == "Suspended")
+  if (user.status == "SUSPENDED")
     throw new BadRequestError("Your account has been suspended");
 
   const { sessionKey, cookieOpt } = await createSession({

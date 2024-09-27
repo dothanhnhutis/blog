@@ -114,17 +114,33 @@ model TaskAssignees {
   @@id([userId, taskId])
 }
 
+model TagTask {
+  name      String
+  TagToTask TagToTask[]
+
+  @@id([name])
+}
+
+model TagToTask {
+  tagName String
+  tag     TagTask @relation(fields: [tagName], references: [name])
+  taskId  String
+  task    Task    @relation(fields: [taskId], references: [id])
+
+  @@id([tagName, taskId])
+}
+
 model Task {
   id            String          @id @default(uuid())
   name          String
   description   String
   status        TaskStatus      @default(TO_DO)
-  tag           String
+  tags          TagToTask[]
   startDate     DateTime
   dueDate       DateTime
   priority      TaskPriority
-  createdBy     User            @relation(fields: [createdId], references: [id])
-  createdId     String
+  createdBy     User            @relation(fields: [createdById], references: [id])
+  createdById   String
   subTask       SubTask[]
   taskAssignees TaskAssignees[]
   createdAt     DateTime        @default(now())
@@ -134,7 +150,7 @@ model Task {
 model SubTask {
   id           String   @id @default(uuid())
   subTaskName  String
-  enableUpload Boolean
+  enableUpload Boolean  @default(false)
   parentTask   Task     @relation(fields: [parentTaskId], references: [id])
   parentTaskId String
   message      String   @default("")

@@ -6,7 +6,11 @@ import {
   setDataCache,
   setDataInSecondCache,
 } from "@/redis/cache";
-import { deleteSession, getAllSession } from "@/redis/session";
+import {
+  deleteSession,
+  deleteSessionByKey,
+  getAllSession,
+} from "@/redis/session";
 import {
   ChangeEmailReq,
   ChangePasswordReq,
@@ -41,6 +45,17 @@ export function currentUser(req: Request, res: Response) {
     ...props,
     hasPassword: !!password,
   });
+}
+
+export async function signOut(req: Request, res: Response) {
+  await deleteSessionByKey(req.sessionKey!);
+  res
+    .status(StatusCodes.OK)
+    .clearCookie(configs.SESSION_KEY_NAME)
+    .json({
+      message: "Sign out successful",
+    })
+    .end();
 }
 
 export async function readAllSession(req: Request, res: Response) {
@@ -273,7 +288,7 @@ export async function sendVerifyEmail(req: Request, res: Response) {
 
   await sendMail({
     template: emaiEnum.VERIFY_EMAIL,
-    receiver: email,
+    receiver: email!,
     locals: {
       username: profile!.firstName + " " + profile!.lastName,
       verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,

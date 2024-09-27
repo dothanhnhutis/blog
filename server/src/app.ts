@@ -13,7 +13,7 @@ import helmet from "helmet";
 import { StatusCodes } from "http-status-codes";
 
 import { appRoutes } from "@/routes";
-import { Customerror, IErrorResponse, NotFoundError } from "./error-handler";
+import { CustomError, IErrorResponse, NotFoundError } from "./error-handler";
 import configs from "./configs";
 import deserializeUser from "./middleware/deserializeUser";
 
@@ -43,7 +43,7 @@ app.use("*", (req: Request, res: Response, next: NextFunction) => {
 
 app.use(
   (error: IErrorResponse, _req: Request, res: Response, next: NextFunction) => {
-    if (error instanceof Customerror) {
+    if (error instanceof CustomError) {
       if (error.statusCode == StatusCodes.UNAUTHORIZED) {
         // res.clearCookie("session");
       }

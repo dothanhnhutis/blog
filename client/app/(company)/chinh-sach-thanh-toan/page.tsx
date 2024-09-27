@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import constants from "@/constants";
 const PaymentPolicy = () => {
   return (
     <section className="bg-muted/40">
@@ -64,20 +65,17 @@ const PaymentPolicy = () => {
             <strong className="font-bold">cam kết</strong> kinh doanh uy tín,
             minh bạch với các sản phẩm chất lượng nhất.
           </p>
-          <p className="text-xl font-light text-black-100 mb-3 mt-32">
-            <strong className="font-bold">
-              CÔNG TY TNHH MTV TM SẢN XUẤT I.C.H
-            </strong>
+          <p className="text-xl font-light text-black-100 mb-3 mt-32 ">
+            <strong className="font-bold">{constants.company}</strong>
           </p>
           <p className="text-sm font-light text-black-100 mb-3">
-            Văn phòng & Nhà máy: 159 Nguyễn Đình Chiễu, Khóm 3, Phường 4, Sóc
-            Trăng.
+            Văn phòng & Nhà máy: {constants.addressCompany}
           </p>
           <p className="text-sm font-light text-black-100 mb-3 truncate">
-            Hotline: 0707.000.004
+            Hotline: {constants.phoneNumberCompany}
           </p>
           <p className="text-sm font-light text-black-100 mb-3 truncate">
-            Email: ichcosmetic@gmail.com
+            Email: {constants.emailCompany}
           </p>
         </div>
       </div>

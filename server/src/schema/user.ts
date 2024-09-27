@@ -239,7 +239,7 @@ type Role = "ADMIN" | "MANAGER" | "SALER" | "BLOGER" | "CUSTOMER";
 type UserStatus = "ACTIVE" | "SUSPENDED" | "DISABLED";
 export type User = {
   id: string;
-  email: string;
+  email: string |null;
   role: Role;
   emailVerified: boolean;
   status: UserStatus;

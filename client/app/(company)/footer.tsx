@@ -71,7 +71,7 @@ const Footer = () => {
                 <CircleIcon className="w-2 h-2 flex flex-shrink-0 mx-1" />
                 <p>Gia Công Mỹ Phẩm</p>
               </Link>
-              <Link href="/" className="flex items-center text-sm">
+              <Link href="/lien-he" className="flex items-center text-sm">
                 <CircleIcon className="w-2 h-2 flex flex-shrink-0 mx-1" />
                 <p>Liên Hệ</p>
               </Link>

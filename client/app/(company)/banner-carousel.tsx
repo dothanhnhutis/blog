@@ -11,10 +11,6 @@ import {
 } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
-// import olloy from "@/images/banners/olloy-banner.jpg";
-// import perfume from "@/images/banners/perfume-banner.jpg";
-// import soap from "@/images/banners/soap-banner.jpg";
-
 export const CarouselBanner = () => {
   const plugin = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })

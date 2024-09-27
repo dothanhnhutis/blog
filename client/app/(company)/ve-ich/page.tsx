@@ -4,6 +4,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import configs from "@/config";
 import { Metadata } from "next";
 import { baseOpenGraph } from "@/app/shared-metadata";
+import constants from "@/constants";
 
 export async function generateMetadata(): Promise<Metadata> {
   const url = configs.NEXT_PUBLIC_CLIENT_URL + "/ve-ich";
@@ -153,20 +154,17 @@ const About = () => {
             />
           </div>
 
-          <p className="text-xl font-light text-black-100 mb-3 mt-32">
-            <strong className="font-bold">
-              CÔNG TY TNHH MTV TM SẢN XUẤT I.C.H
-            </strong>
+          <p className="text-xl font-light text-black-100 mb-3 mt-32 ">
+            <strong className="font-bold">{constants.company}</strong>
           </p>
           <p className="text-sm font-light text-black-100 mb-3">
-            Văn phòng & Nhà máy: 159 Nguyễn Đình Chiễu, Khóm 3, Phường 4, Sóc
-            Trăng.
+            Văn phòng & Nhà máy: {constants.addressCompany}
           </p>
           <p className="text-sm font-light text-black-100 mb-3 truncate">
-            Hotline: 0707.000.004
+            Hotline: {constants.phoneNumberCompany}
           </p>
           <p className="text-sm font-light text-black-100 mb-3 truncate">
-            Email: ichcosmetic@gmail.com
+            Email: {constants.emailCompany}
           </p>
         </div>
       </div>

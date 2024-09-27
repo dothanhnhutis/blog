@@ -199,6 +199,7 @@ export async function insertUserWithGoogle(
 ) {
   const data: Prisma.UserCreateInput = {
     email: googleData.email,
+    emailVerified: googleData.verified_email,
     profile: {
       create: {
         firstName: googleData.given_name,

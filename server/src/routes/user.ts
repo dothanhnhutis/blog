@@ -15,6 +15,7 @@ import {
   sendChangeEmail,
   sendVerifyEmail,
   setupMFA,
+  signOut,
 } from "@/controllers/current-user";
 import { authMiddleware } from "@/middleware/requiredAuth";
 import validateResource from "@/middleware/validateResource";
@@ -117,6 +118,7 @@ function userRouter(): Router {
   );
 
   router.delete("/users/sessions/:sessionId", authMiddleware(), removeSession);
+  router.delete("/users/signout", signOut);
 
   return router;
 }
