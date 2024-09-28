@@ -1,47 +1,88 @@
+import { CreateTaskReq } from "@/schema/task";
 import prisma from "@/utils/db";
 import { Prisma } from "@prisma/client";
 
-export async function createTask() {
+export const taskSelectDefault: Prisma.TaskSelect = {
+  id: true,
+  name: true,
+  description: true,
+  status: true,
+  tags: {
+    select: {
+      tagName: true,
+    },
+  },
+  startDate: true,
+  dueDate: true,
+  priority: true,
+  createdById: true,
+  createdBy: {
+    select: {
+      profile: {
+        select: {
+          photo: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  },
+  subTasks: true,
+  taskAssignees: {
+    select: {
+      user: {
+        select: {
+          profile: {
+            select: {
+              photo: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  createdAt: true,
+  updatedAt: true,
+};
+
+export type InsertTaskInput = CreateTaskReq["body"] & {
+  createdById: string;
+};
+// Create
+export async function insertTask(
+  input: InsertTaskInput,
+  select?: Prisma.TaskSelect
+) {
+  const { tags, taskAssignees, subTasks, ...props } = input;
   return await prisma.task.create({
     data: {
-      name: "task name",
-      description: "task description",
-      startDate: "2024-09-27T02:23:12.469Z",
-      dueDate: "2024-09-30T02:23:12.469Z",
-      priority: "LOW",
-      createdById: "",
-      status: "TO_DO",
+      ...props,
       tags: {
-        create: [
-          {
-            tagTask: {
-              connectOrCreate: {
-                where: {
-                  name: "",
-                },
-                create: {
-                  name: "",
-                },
+        create: tags.map((name) => ({
+          tag: {
+            connectOrCreate: {
+              where: {
+                name,
+              },
+              create: {
+                name,
               },
             },
           },
-        ],
+        })),
       },
       taskAssignees: {
-        create: [
-          {
-            userId: "9153ee46-25d3-4520-adb3-af7077b269c8",
-          },
-        ],
+        create: taskAssignees.map((userId) => ({ userId })),
       },
-      subTask: {
-        create: [
-          {
-            enableUpload: false,
-            subTaskName: "sub task name",
-          },
-        ],
+      subTasks: {
+        create: subTasks,
       },
     },
+    select: Prisma.validator<Prisma.TaskSelect>()({
+      ...taskSelectDefault,
+      ...select,
+    }),
   });
 }

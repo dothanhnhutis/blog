@@ -115,19 +115,21 @@ model TaskAssignees {
 }
 
 model TagTask {
-  name      String
-  TagToTask TagToTask[]
+  name      String      @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  taskToTag TaskToTag[]
 
   @@id([name])
 }
 
-model TagToTask {
+model TaskToTag {
+  taskId  String
+  task    Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
   tagName String
   tag     TagTask @relation(fields: [tagName], references: [name])
-  taskId  String
-  task    Task    @relation(fields: [taskId], references: [id])
 
-  @@id([tagName, taskId])
+  @@id([taskId, tagName])
 }
 
 model Task {
@@ -135,27 +137,32 @@ model Task {
   name          String
   description   String
   status        TaskStatus      @default(TO_DO)
-  tags          TagToTask[]
+  tags          TaskToTag[]
   startDate     DateTime
   dueDate       DateTime
   priority      TaskPriority
   createdBy     User            @relation(fields: [createdById], references: [id])
   createdById   String
-  subTask       SubTask[]
+  subTasks      SubTask[]
   taskAssignees TaskAssignees[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+
+  @@index([name, status, startDate, dueDate, priority])
 }
 
 model SubTask {
   id           String   @id @default(uuid())
   subTaskName  String
   enableUpload Boolean  @default(false)
-  parentTask   Task     @relation(fields: [parentTaskId], references: [id])
+  parentTask   Task     @relation(fields: [parentTaskId], references: [id], onDelete: Cascade)
   parentTaskId String
   message      String   @default("")
   isDone       Boolean  @default(false)
   attachment   String[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@unique([subTaskName, parentTaskId])
+  @@index([subTaskName, parentTaskId])
 }

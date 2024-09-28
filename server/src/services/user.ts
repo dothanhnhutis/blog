@@ -143,6 +143,18 @@ export async function getUserByProvider(
   });
 }
 
+export async function getUserByIds(ids: string[], select?: Prisma.UserSelect) {
+  return await prisma.user.findMany({
+    where: {
+      id: { in: ids },
+    },
+    select: Prisma.validator<Prisma.UserSelect>()({
+      ...userSelectDefault,
+      ...select,
+    }),
+  });
+}
+
 // Create
 export async function insertUserWithPassword(
   input: SignUpReq["body"],
