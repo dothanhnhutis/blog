@@ -11,24 +11,27 @@ export async function createTask(
 ) {
   const { id } = req.user!;
 
-  const users = await getUserByIds(req.body.taskAssignees);
+  const { subTaskSwitch, ...body } = req.body;
 
-  if (req.body.taskAssignees.length > users.length) {
-    const userNotVerify = users.filter((user) => !user.emailVerified);
-    if (userNotVerify.length > 0)
-      throw new BadRequestError(
-        "Tasks cannot be assigned to users with unverified accounts"
-      );
-    const userNotPermission = users.filter((user) => user.role == "CUSTOMER");
-    if (userNotPermission.length > 0)
-      throw new BadRequestError(
-        "Tasks cannot be assigned to users with the 'CUSTOMER' role"
-      );
-  }
+  const users = await getUserByIds(body.taskAssignees);
+
+  const userNotVerify = users.filter((user) => !user.emailVerified);
+  if (userNotVerify.length > 0)
+    throw new BadRequestError(
+      "Tasks cannot be assigned to users with unverified accounts"
+    );
+  const userNotPermission = users.filter((user) => user.role == "CUSTOMER");
+  if (userNotPermission.length > 0)
+    throw new BadRequestError(
+      "Tasks cannot be assigned to users with the 'CUSTOMER' role"
+    );
 
   const task = await insertTask({
-    ...req.body,
+    ...body,
     createdById: id,
+    subTasks: subTaskSwitch.enableSubTask
+      ? subTaskSwitch.subTasks
+      : [subTaskSwitch.subTask],
   });
 
   // emit socket
@@ -45,4 +48,4 @@ export async function updateTaskById(req: Request<{}, {}, {}>, res: Response) {
   });
 }
 
-export async function name(params: type) {}
+// export async function name(params: type) {}

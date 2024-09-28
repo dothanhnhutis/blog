@@ -1,4 +1,4 @@
-import { CreateTaskReq } from "@/schema/task";
+import { CreateSubTaskReq, CreateTaskReq } from "@/schema/task";
 import prisma from "@/utils/db";
 import { Prisma } from "@prisma/client";
 
@@ -47,15 +47,31 @@ export const taskSelectDefault: Prisma.TaskSelect = {
   updatedAt: true,
 };
 
-export type InsertTaskInput = CreateTaskReq["body"] & {
+export type InsertTaskInput = Omit<CreateTaskReq["body"], "subTaskSwitch"> & {
   createdById: string;
+  subTasks: Partial<CreateSubTaskReq>[];
 };
+
 // Create
 export async function insertTask(
   input: InsertTaskInput,
   select?: Prisma.TaskSelect
 ) {
   const { tags, taskAssignees, subTasks, ...props } = input;
+  console.log(
+    tags.map((name) => ({
+      tag: {
+        connectOrCreate: {
+          where: {
+            name,
+          },
+          create: {
+            name,
+          },
+        },
+      },
+    }))
+  );
   return await prisma.task.create({
     data: {
       ...props,
@@ -86,3 +102,5 @@ export async function insertTask(
     }),
   });
 }
+
+// Read

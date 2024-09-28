@@ -107,9 +107,9 @@ enum TaskPriority {
 
 model TaskAssignees {
   userId String
-  user   User   @relation(fields: [userId], references: [id])
-  task   Task   @relation(fields: [taskId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@id([userId, taskId])
 }
@@ -121,15 +121,17 @@ model TagTask {
   taskToTag TaskToTag[]
 
   @@id([name])
+  @@index([name])
 }
 
 model TaskToTag {
   taskId  String
   task    Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
   tagName String
-  tag     TagTask @relation(fields: [tagName], references: [name])
+  tag     TagTask @relation(fields: [tagName], references: [name], onDelete: Cascade)
 
   @@id([taskId, tagName])
+  @@index([taskId, tagName])
 }
 
 model Task {
@@ -141,28 +143,56 @@ model Task {
   startDate     DateTime
   dueDate       DateTime
   priority      TaskPriority
-  createdBy     User            @relation(fields: [createdById], references: [id])
+  createdBy     User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
   createdById   String
   subTasks      SubTask[]
   taskAssignees TaskAssignees[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
-  @@index([name, status, startDate, dueDate, priority])
+  @@index([name, status, startDate, dueDate, priority, createdById])
+}
+
+enum SubTaskStatus {
+  ASSIGNED
+  PENDING_REVIEW
+  ACCEPTED
+  REJECTED
 }
 
 model SubTask {
-  id           String   @id @default(uuid())
-  subTaskName  String
-  enableUpload Boolean  @default(false)
-  parentTask   Task     @relation(fields: [parentTaskId], references: [id], onDelete: Cascade)
-  parentTaskId String
-  message      String   @default("")
-  isDone       Boolean  @default(false)
-  attachment   String[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String        @id @default(uuid())
+  subTaskName      String        @default("")
+  enableAttachment Boolean       @default(false)
+  parentTask       Task          @relation(fields: [parentTaskId], references: [id], onDelete: Cascade)
+  parentTaskId     String
+  status           SubTaskStatus @default(ASSIGNED)
+  submits          TaskSubmit[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@unique([subTaskName, parentTaskId])
   @@index([subTaskName, parentTaskId])
+}
+
+model TaskAttachment {
+  id           String      @id @default(uuid())
+  fileName     String
+  type         String
+  url          String
+  taskSubmitId String?
+  taskSubmit   TaskSubmit? @relation(fields: [taskSubmitId], references: [id], onDelete: SetNull)
+
+  @@index([taskSubmitId, fileName, url])
+}
+
+model TaskSubmit {
+  id           String           @id @default(uuid())
+  subTask      SubTask          @relation(fields: [subTaskId], references: [id], onDelete: Cascade)
+  subTaskId    String
+  attachments  TaskAttachment[]
+  comments     String           @default("")
+  taskSubmitAt DateTime
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 }
