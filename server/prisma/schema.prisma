@@ -175,24 +175,20 @@ model SubTask {
   @@index([subTaskName, parentTaskId])
 }
 
-model TaskAttachment {
-  id           String      @id @default(uuid())
-  fileName     String
-  type         String
-  url          String
-  taskSubmitId String?
-  taskSubmit   TaskSubmit? @relation(fields: [taskSubmitId], references: [id], onDelete: SetNull)
-
-  @@index([taskSubmitId, fileName, url])
-}
-
 model TaskSubmit {
-  id           String           @id @default(uuid())
-  subTask      SubTask          @relation(fields: [subTaskId], references: [id], onDelete: Cascade)
+  id           String   @id @default(uuid())
+  subTask      SubTask  @relation(fields: [subTaskId], references: [id], onDelete: Cascade)
   subTaskId    String
-  attachments  TaskAttachment[]
-  comments     String           @default("")
-  taskSubmitAt DateTime
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  attachments  String[] @default([])
+  comments     String   @default("")
+  taskSubmitAt DateTime @default(now())
 }
+
+// model TaskAttachment {
+//   id       String @id @default(uuid())
+//   fileName String
+//   type     String
+//   url      String
+
+//   @@index([fileName, url, type])
+// }

@@ -1,4 +1,9 @@
-import { CreateSubTaskReq, CreateTaskReq } from "@/schema/task";
+import {
+  CreateSubTaskReq,
+  CreateTaskReq,
+  ReviewSubTaskReq,
+  SubmitSubTaskReq,
+} from "@/schema/task";
 import prisma from "@/utils/db";
 import { Prisma } from "@prisma/client";
 
@@ -104,3 +109,114 @@ export async function insertTask(
 }
 
 // Read
+export async function getTaskBySubTaskId(
+  subTaskId: string,
+  select?: Prisma.TaskSelect
+) {
+  return await prisma.task.findFirst({
+    where: {
+      subTasks: {
+        some: {
+          id: subTaskId,
+        },
+      },
+    },
+    select: Prisma.validator<Prisma.TaskSelect>()({
+      ...taskSelectDefault,
+      ...select,
+    }),
+  });
+}
+
+export async function getTaskById(id: string, select?: Prisma.TaskSelect) {
+  return await prisma.task.findUnique({
+    where: {
+      id,
+    },
+    select: Prisma.validator<Prisma.TaskSelect>()({
+      ...taskSelectDefault,
+      ...select,
+    }),
+  });
+}
+
+// Update
+export async function submitSubtask(
+  subTaskId: string,
+  input: SubmitSubTaskReq["body"]
+) {
+  await prisma.taskSubmit.create({
+    data: {
+      subTaskId,
+      ...input,
+    },
+  });
+  const subTask = await prisma.subTask.update({
+    where: {
+      id: subTaskId,
+    },
+    data: {
+      status: "PENDING_REVIEW",
+    },
+  });
+
+  const task = await prisma.task.findFirst({
+    where: {
+      subTasks: {
+        some: {
+          id: subTaskId,
+        },
+      },
+    },
+    select: {
+      id: true,
+      status: true,
+      subTasks: true,
+    },
+  });
+
+  const isAllSubmit = task!.subTasks.every(
+    (subTask) => subTask.status == "ACCEPTED"
+  );
+  const numberOfSubmit = task!.subTasks.filter(
+    (subTask) => subTask.status == "ACCEPTED"
+  ).length;
+
+  await prisma.task.update({
+    where: {
+      id: task!.id,
+    },
+    data: {
+      status: isAllSubmit
+        ? "IN_REVIEW"
+        : numberOfSubmit == 0
+        ? "TO_DO"
+        : "ON_PROGRESS",
+    },
+  });
+
+  return subTask;
+}
+
+export async function reviewSubTask(
+  subTaskId: string,
+  status: ReviewSubTaskReq["body"]["status"]
+) {
+  return await prisma.subTask.update({
+    where: {
+      id: subTaskId,
+    },
+    data: {
+      status,
+    },
+  });
+}
+
+export async function updateTaskById(id: string, input: any) {
+  return await prisma.task.update({
+    where: {
+      id,
+    },
+    data: {},
+  });
+}

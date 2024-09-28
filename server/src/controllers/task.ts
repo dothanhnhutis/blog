@@ -1,6 +1,18 @@
-import { BadRequestError } from "@/error-handler";
-import { CreateTaskReq } from "@/schema/task";
-import { insertTask } from "@/services/task";
+import { BadRequestError, NotFoundError } from "@/error-handler";
+import {
+  CreateTaskReq,
+  ReviewSubTaskReq,
+  SubmitSubTaskReq,
+  UpdateTaskReq,
+} from "@/schema/task";
+import { User } from "@/schema/user";
+import {
+  getTaskById,
+  getTaskBySubTaskId,
+  insertTask,
+  reviewSubTask,
+  submitSubtask,
+} from "@/services/task";
 import { getUserByIds } from "@/services/user";
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
@@ -12,9 +24,7 @@ export async function createTask(
   const { id } = req.user!;
 
   const { subTaskSwitch, ...body } = req.body;
-
   const users = await getUserByIds(body.taskAssignees);
-
   const userNotVerify = users.filter((user) => !user.emailVerified);
   if (userNotVerify.length > 0)
     throw new BadRequestError(
@@ -41,11 +51,78 @@ export async function createTask(
   });
 }
 
-export async function updateTaskById(req: Request<{}, {}, {}>, res: Response) {
+export async function updateTaskById(
+  req: Request<UpdateTaskReq["params"], {}, UpdateTaskReq["body"]>,
+  res: Response
+) {
+  const { taskId } = req.params;
+  const task = await getTaskById(taskId);
+  if (!task) throw new BadRequestError("invalid taskId");
+
   return res.status(StatusCodes.CREATED).json({
     message: "Update task success",
     // task
   });
 }
 
-// export async function name(params: type) {}
+export async function submitTask(
+  req: Request<SubmitSubTaskReq["params"], {}, SubmitSubTaskReq["body"]>,
+  res: Response
+) {
+  const { id } = req.user!;
+  const { subTaskId } = req.params;
+  const { attachments } = req.body;
+
+  const task = await getTaskBySubTaskId(subTaskId);
+  if (!task) throw new NotFoundError();
+
+  if (task.taskAssignees.find((user) => user.userId == id))
+    throw new BadRequestError("You have not been assigned this task");
+
+  // if (
+  //   task.subTasks.find((subTask) => subTask.id == subTaskId)!.status !=
+  //   "ACCEPTED"
+  // )
+  //   throw new BadRequestError("Task has been completed");
+
+  const subTask = task.subTasks.find((subTask) => subTask.id == subTaskId)!;
+  if (subTask.enableAttachment == false && attachments.length > 0) {
+    throw new BadRequestError("Unable to attach attachments to the task.");
+  }
+
+  await submitSubtask(subTaskId, req.body);
+
+  return res.status(StatusCodes.CREATED).json({
+    message: "Submit task success",
+  });
+}
+
+export async function reviewTask(
+  req: Request<ReviewSubTaskReq["params"], {}, ReviewSubTaskReq["body"]>,
+  res: Response
+) {
+  const { id, role } = req.user!;
+  const { subTaskId } = req.params;
+  const { status } = req.body;
+
+  const task = await getTaskBySubTaskId(subTaskId);
+  if (!task) throw new NotFoundError();
+
+  const rolesAccess: User["role"][] = ["ADMIN", "MANAGER"];
+  if (!rolesAccess.includes(role) && task.createdById != id)
+    throw new BadRequestError("You have not been assigned this task");
+
+  // if (
+  //   task.subTasks.find((subTask) => subTask.id == subTaskId)!.status ==
+  //   "ASSIGNED"
+  // )
+  //   throw new BadRequestError(
+  //     "The task assignees have not completed the task."
+  //   );
+
+  await reviewSubTask(subTaskId, status);
+
+  return res.status(StatusCodes.CREATED).json({
+    message: "Review task success",
+  });
+}
