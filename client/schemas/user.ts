@@ -1,10 +1,10 @@
 import { z } from "zod";
 export const roles = [
-  "Admin",
-  "Manager",
-  "Saler",
-  "Bloger",
-  "Customer",
+  "ADMIN",
+  "MANAGER",
+  "SALER",
+  "BLOGER",
+  "CUSTOMER",
 ] as const;
 export const status = ["Active", "Suspended", "Disabled"] as const;
 

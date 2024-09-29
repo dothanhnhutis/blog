@@ -21,9 +21,9 @@ export const privateRegExpRoutes = [
 ];
 
 export const roleAccessRoutes: Record<User["role"], RegExp[]> = {
-  Customer: [BaseRoutes],
-  Bloger: [BaseRoutes, PostRoutes],
-  Saler: [],
-  Manager: [BaseRoutes, PostRoutes, ProductRoutes],
-  Admin: privateRegExpRoutes,
+  CUSTOMER: [BaseRoutes],
+  BLOGER: [BaseRoutes, PostRoutes],
+  SALER: [],
+  MANAGER: [BaseRoutes, PostRoutes, ProductRoutes],
+  ADMIN: privateRegExpRoutes,
 };

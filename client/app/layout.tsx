@@ -47,7 +47,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${montserrat.variable} `}
     >
-      <body className="font-sans">
+      <body className="font-sans relative">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
