@@ -33,50 +33,11 @@ import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 const NewLayout = () => {
-  const MIN_SIZE_IN_PIXELS = 210;
-
   const { setTheme, theme } = useTheme();
-
-  const [minSize, setMinSize] = React.useState(10);
-
-  React.useLayoutEffect(() => {
-    const panelGroup: HTMLElement | null = document.querySelector(
-      '[data-panel-group-id="group"]'
-    );
-    const resizeHandles: NodeListOf<HTMLElement> = document.querySelectorAll(
-      "[data-panel-resize-handle-id]"
-    );
-    if (!panelGroup || !resizeHandles) return;
-    const observer = new ResizeObserver(() => {
-      let height = panelGroup.offsetHeight;
-
-      resizeHandles.forEach((resizeHandle) => {
-        height -= resizeHandle.offsetHeight;
-      });
-      setMinSize((MIN_SIZE_IN_PIXELS / height) * 100);
-    });
-    observer.observe(panelGroup);
-    resizeHandles.forEach((resizeHandle) => {
-      observer.observe(resizeHandle);
-    });
-
-    return () => {
-      observer.unobserve(panelGroup);
-      resizeHandles.forEach((resizeHandle) => {
-        observer.unobserve(resizeHandle);
-      });
-      observer.disconnect();
-    };
-  }, []);
 
   return (
     <div className="flex relative">
@@ -162,26 +123,75 @@ const NewLayout = () => {
                   <p className="font-bold">All</p>
                   <p>Task (10)</p>
                 </div>
-                <div className="inline-flex gap-1 items-center font-semibold text-sm text-primary">
+                <div className="inline-flex gap-1 items-center font-semibold text-sm text-primary cursor-pointer">
                   <CheckCheckIcon className="shrink-0 size-4" />
                   <span>Mark all as read</span>
                 </div>
               </div>
 
-              <div className="max-h-[calc(100vh_-_105px)] overflow-y-scroll p-1">
+              <div className="max-h-[calc(100vh_-_103px)] overflow-y-scroll p-1">
                 <div className="h-[2000px]">
-                  <p>Today</p>
-                  <div className="flex">
-                    <Image
-                      src={configs.NEXT_PUBLIC_PHOTO_URL}
-                      alt="avatar"
-                      width="100"
-                      height="100"
-                      className="size-8 rounded-full "
-                    />
-                    <div>
-                      <p></p>
-                      <p></p>
+                  <p className="font-bold text-sm">Today</p>
+                  <div className="relative px-3 after:shrink-0 after:bg-primary after:border-[2px] after:border-blue-200 after:size-3 after:top-0 after:right-0 after:rounded-full after:absolute">
+                    <div className="flex gap-2 items-center ">
+                      <div className="relative shrink-0 after:shrink-0 after:bg-gray-500 after:border-[2px] after:border-white after:size-3 after:bottom-0 after:right-0 after:rounded-full after:absolute">
+                        <Image
+                          src={configs.NEXT_PUBLIC_PHOTO_URL}
+                          alt="avatar"
+                          width="100"
+                          height="100"
+                          className="size-10 rounded-full "
+                        />
+                      </div>
+                      <div className="w-full">
+                        <p className="text-base">
+                          <b>Thanh Nhut</b> shared a new document in <b>Blog</b>
+                        </p>
+
+                        <div className="flex items-center gap-1 text-xs">
+                          <p>Now</p>
+                          <div className="w-3 h-[1px] bg-gray-600" />
+                          <p className="p-1 px-2 bg-accent rounded rounded-br font-bold relative before:bg-green-400 before:w-0.5 before:h-3 before:absolute before:top-1.5 before:left-1">
+                            Finance
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="ml-12 flex gap-2 mt-2">
+                      <Button size="sm">Approve</Button>
+                      <Button variant="outline" size="sm">
+                        Deny
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="relative px-3 after:shrink-0 after:bg-primary after:border-[2px] after:border-blue-200 after:size-3 after:top-0 after:right-0 after:rounded-full after:absolute">
+                    <div className="flex gap-2 items-center ">
+                      <div className="relative shrink-0 after:shrink-0 after:bg-gray-500 after:border-[2px] after:border-white after:size-3 after:bottom-0 after:right-0 after:rounded-full after:absolute">
+                        <Image
+                          src={configs.NEXT_PUBLIC_PHOTO_URL}
+                          alt="avatar"
+                          width="100"
+                          height="100"
+                          className="size-10 rounded-full "
+                        />
+                      </div>
+                      <div className="w-full">
+                        <p className="text-base">
+                          <b>Thanh Nhut</b> shared a new document in <b>Blog</b>
+                        </p>
+
+                        <div className="flex items-center gap-1 text-xs">
+                          <p>Now</p>
+                          <div className="w-3 h-[1px] bg-gray-600" />
+                          <p className="p-1 px-2 bg-accent rounded rounded-br font-bold relative before:bg-green-400 before:w-0.5 before:h-3 before:absolute before:top-1.5 before:left-1">
+                            Finance
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="ml-12 mt-2 rounded-md border-l-4 border-orange-500">
+                      Please ensure the feedback is constructive and actionable.
+                      We need to finalize this by tomorrow
                     </div>
                   </div>
                 </div>
@@ -198,7 +208,9 @@ const NewLayout = () => {
             <p className="text-sm w-full hidden md:block">Dark Mode</p>
             <Switch
               id="theme"
-              onCheckedChange={(v) => setTheme(!v ? "light" : "dark")}
+              defaultChecked={theme == "dark"}
+              checked={theme == "dark"}
+              onCheckedChange={(v) => setTheme(v ? "dark" : "light")}
               className="hidden md:block"
             />
           </label>
@@ -276,7 +288,7 @@ const NewLayout = () => {
         </div>
       </div>
 
-      <div className="w-full bg-background p-4 max-w-screen-xl mx-auto md:rounded-xl mb-2 md:min-h-[calc(100vh_-_64px)]">
+      <div className="w-full bg-background p-4 max-w-screen-xl mx-auto md:rounded-xl md:min-h-[calc(100vh_-_64px)]">
         <h3 className="font-bold text-2xl">Account settings</h3>
         <p className="text-sm font-normal leading-snug text-muted-foreground">
           Manage your account settings and set e-mail preferences.
