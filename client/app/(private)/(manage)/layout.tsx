@@ -1,5 +1,5 @@
 import React from "react";
-import { getCurrentUser } from "../actions";
+import { getCurrentUser } from "../../actions";
 import { AuthProvider } from "@/components/providers/auth-provider";
 
 const PrivateLayout = async ({ children }: { children: React.ReactNode }) => {

@@ -1,10 +1,26 @@
+import { TankStackProvider } from "@/components/providers/tankStack-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "next-themes";
 import React from "react";
-import { getCurrentUser } from "../actions";
-import { AuthProvider } from "@/components/providers/auth-provider";
 
-const PrivateLayout = async ({ children }: { children: React.ReactNode }) => {
-  const currentUser = await getCurrentUser();
-  return <AuthProvider initUser={currentUser}>{children}</AuthProvider>;
+const PrivateLayout = ({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) => {
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange={false}
+    >
+      <TankStackProvider>
+        {children}
+        <Toaster visibleToasts={5} richColors />
+      </TankStackProvider>
+    </ThemeProvider>
+  );
 };
 
 export default PrivateLayout;

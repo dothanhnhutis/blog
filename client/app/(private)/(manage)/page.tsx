@@ -25,6 +25,8 @@ import {
   MailIcon,
   Maximize2Icon,
   MoonIcon,
+  PaperclipIcon,
+  RedoIcon,
   SunIcon,
   UsersIcon,
   XIcon,
@@ -103,7 +105,7 @@ const NewLayout = () => {
               align="end"
               side="right"
               className={cn(
-                "w-[calc(100vw_-_60px)] md:w-[calc(100vw_-_214px)]  md:max-w-[640px] ml-2 max-h-[calc(100vh_-_16px)] my-2 overflow-hidden p-0"
+                "w-[calc(100vw_-_64px)] md:w-[calc(100vw_-_218px)] md:max-w-[644px] max-h-[calc(100vh_-_16px)] m-2 mr-0 overflow-hidden p-0"
               )}
             >
               <DropdownMenuLabel className="flex gap-2 items-center justify-between">
@@ -129,11 +131,11 @@ const NewLayout = () => {
                 </div>
               </div>
 
-              <div className="max-h-[calc(100vh_-_103px)] overflow-y-scroll p-1">
+              <div className="max-h-[calc(100vh_-_103px)] min-w- overflow-y-scroll p-1">
                 <div className="h-[2000px]">
                   <p className="font-bold text-sm">Today</p>
                   <div className="relative px-3 after:shrink-0 after:bg-primary after:border-[2px] after:border-blue-200 after:size-3 after:top-0 after:right-0 after:rounded-full after:absolute">
-                    <div className="flex gap-2 items-center ">
+                    <div className="flex gap-3 items-center">
                       <div className="relative shrink-0 after:shrink-0 after:bg-gray-500 after:border-[2px] after:border-white after:size-3 after:bottom-0 after:right-0 after:rounded-full after:absolute">
                         <Image
                           src={configs.NEXT_PUBLIC_PHOTO_URL}
@@ -145,7 +147,8 @@ const NewLayout = () => {
                       </div>
                       <div className="w-full">
                         <p className="text-base">
-                          <b>Thanh Nhut</b> shared a new document in <b>Blog</b>
+                          <b>Thanh Nhut</b> shared a new document in{" "}
+                          <b>Q3 Financials</b>
                         </p>
 
                         <div className="flex items-center gap-1 text-xs">
@@ -157,7 +160,7 @@ const NewLayout = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="ml-12 flex gap-2 mt-2">
+                    <div className="ml-[52px] flex gap-2 mt-2">
                       <Button size="sm">Approve</Button>
                       <Button variant="outline" size="sm">
                         Deny
@@ -165,8 +168,8 @@ const NewLayout = () => {
                     </div>
                   </div>
                   <div className="relative px-3 after:shrink-0 after:bg-primary after:border-[2px] after:border-blue-200 after:size-3 after:top-0 after:right-0 after:rounded-full after:absolute">
-                    <div className="flex gap-2 items-center ">
-                      <div className="relative shrink-0 after:shrink-0 after:bg-gray-500 after:border-[2px] after:border-white after:size-3 after:bottom-0 after:right-0 after:rounded-full after:absolute">
+                    <div className="flex gap-3 items-center ">
+                      <div className="relative shrink-0 after:shrink-0 after:bg-green-500 after:border-[2px] after:border-white after:size-3 after:bottom-0 after:right-0 after:rounded-full after:absolute">
                         <Image
                           src={configs.NEXT_PUBLIC_PHOTO_URL}
                           alt="avatar"
@@ -177,11 +180,11 @@ const NewLayout = () => {
                       </div>
                       <div className="w-full">
                         <p className="text-base">
-                          <b>Thanh Nhut</b> shared a new document in <b>Blog</b>
+                          <b>David</b> commented in <b>Performance Reviews</b>
                         </p>
 
                         <div className="flex items-center gap-1 text-xs">
-                          <p>Now</p>
+                          <p>2h ago</p>
                           <div className="w-3 h-[1px] bg-gray-600" />
                           <p className="p-1 px-2 bg-accent rounded rounded-br font-bold relative before:bg-green-400 before:w-0.5 before:h-3 before:absolute before:top-1.5 before:left-1">
                             Finance
@@ -189,9 +192,103 @@ const NewLayout = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="ml-12 mt-2 rounded-md border-l-4 border-orange-500">
+                    <div className="ml-[52px] mt-2 rounded-md border-l-4 border-orange-500 p-2 bg-gradient-to-r from-orange-50">
                       Please ensure the feedback is constructive and actionable.
                       We need to finalize this by tomorrow
+                    </div>
+                  </div>
+                  <div className="relative px-3 after:shrink-0 after:bg-primary after:border-[2px] after:border-blue-200 after:size-3 after:top-0 after:right-0 after:rounded-full after:absolute">
+                    <div className="flex gap-2 items-center ">
+                      <div className="relative shrink-0 after:shrink-0 after:bg-green-500 after:border-[2px] after:border-white after:size-3 after:bottom-0 after:right-0 after:rounded-full after:absolute">
+                        <Image
+                          src={configs.NEXT_PUBLIC_PHOTO_URL}
+                          alt="avatar"
+                          width="100"
+                          height="100"
+                          className="size-10 rounded-full "
+                        />
+                      </div>
+                      <div className="w-full">
+                        <p className="text-base">
+                          <b>Nina</b> mentioned you in a comment on{" "}
+                          <b>Annual Report</b>
+                        </p>
+
+                        <div className="flex items-center gap-1 text-xs">
+                          <p>2h ago</p>
+                          <div className="w-3 h-[1px] bg-gray-600" />
+                          <p className="p-1 px-2 bg-accent rounded rounded-br font-bold relative before:bg-green-400 before:w-0.5 before:h-3 before:absolute before:top-1.5 before:left-1">
+                            Finance
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 ml-12 mt-2 rounded-md border-l-4 border-gray-500 p-2 bg-gradient-to-r from-gray-50">
+                      <p>Could you please verify the numbers on pages 4 ?</p>
+                      <div className="flex justify-between gap-1 items-center border p-2 rounded-lg">
+                        <p className="font-medium">Reply</p>
+                        <RedoIcon className="size-4 shrink-0" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="relative px-3 after:shrink-0 after:bg-primary after:border-[2px] after:border-blue-200 after:size-3 after:top-0 after:right-0 after:rounded-full after:absolute">
+                    <div className="flex gap-2 items-center ">
+                      <div className="relative shrink-0 after:shrink-0 after:bg-green-500 after:border-[2px] after:border-white after:size-3 after:bottom-0 after:right-0 after:rounded-full after:absolute">
+                        <Image
+                          src={configs.NEXT_PUBLIC_PHOTO_URL}
+                          alt="avatar"
+                          width="100"
+                          height="100"
+                          className="size-10 rounded-full "
+                        />
+                      </div>
+                      <div className="w-full">
+                        <p className="text-base">
+                          <b>Nina</b> mentioned you in a comment on{" "}
+                          <b>Annual Report</b>
+                        </p>
+
+                        <div className="flex items-center gap-1 text-xs">
+                          <p>2h ago</p>
+                          <div className="w-3 h-[1px] bg-gray-600" />
+                          <p className="p-1 px-2 bg-accent rounded rounded-br font-bold relative before:bg-green-400 before:w-0.5 before:h-3 before:absolute before:top-1.5 before:left-1">
+                            Finance
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="inline-flex items-center px-2 py-1 gap-2 ml-12 mt-2 rounded-md bg-accent text-sm text-gray-500 border">
+                      <PaperclipIcon className="shrink-0 size-4" />
+                      <span className="font-bold text-black">
+                        docker-compose.yml
+                      </span>
+                      <span>1MB</span>
+                    </div>
+                  </div>
+                  <div className="relative px-3 ">
+                    <div className="flex gap-2 items-center ">
+                      <div className="relative shrink-0 after:shrink-0 after:bg-green-500 after:border-[2px] after:border-white after:size-3 after:bottom-0 after:right-0 after:rounded-full after:absolute">
+                        <Image
+                          src={configs.NEXT_PUBLIC_PHOTO_URL}
+                          alt="avatar"
+                          width="100"
+                          height="100"
+                          className="size-10 rounded-full "
+                        />
+                      </div>
+                      <div className="w-full">
+                        <p className="text-base">
+                          <b>Nina</b> commented in <b>Annual Report</b>
+                        </p>
+
+                        <div className="flex items-center gap-1 text-xs">
+                          <p>27 Aug 2024</p>
+                          <div className="w-3 h-[1px] bg-gray-600" />
+                          <p className="p-1 px-2 bg-accent rounded rounded-br font-bold relative before:bg-green-400 before:w-0.5 before:h-3 before:absolute before:top-1.5 before:left-1">
+                            Finance
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
