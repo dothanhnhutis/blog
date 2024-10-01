@@ -2,14 +2,15 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { AiOutlineCheck, LoaderPinwheelIcon } from "react-icons/ai";
+import { AiOutlineCheck } from "react-icons/ai";
 import { cn } from "@/lib/utils";
 import { ResetPasswordInput, resetPasswordSchema } from "@/schemas/auth";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { resetPassword } from "../actions";
-import PasswordInput from "../../../components/password-input";
+import PasswordInput from "@/components/password-input";
 import { useMutation } from "@tanstack/react-query";
+import { LoaderPinwheelIcon } from "lucide-react";
 
 const ResetPasswordForm = ({ session }: { session: string }) => {
   const router = useRouter();

@@ -6,7 +6,6 @@ import { cookies, headers } from "next/headers";
 import { cookieParser } from "@/lib/cookies-parser";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { cookieServer } from "../actions";
 
 export async function signUp(input: SignUpInput) {
   const { success, data } = await authApi.signUp(input);
@@ -36,7 +35,11 @@ export async function signIn(input: SignInInput) {
 }
 
 export async function sendEmailVerify() {
-  await userApi.sendEmailVerify(await cookieServer());
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  await userApi.sendEmailVerify(allCookie);
 }
 
 export async function verifyEmail(token: string) {

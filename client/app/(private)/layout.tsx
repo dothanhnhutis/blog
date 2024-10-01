@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import React from "react";
 
-const PrivateLayout = ({
+const PrivateLayout = async ({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -15,10 +15,7 @@ const PrivateLayout = ({
       enableSystem
       disableTransitionOnChange={false}
     >
-      <TankStackProvider>
-        {children}
-        <Toaster visibleToasts={5} richColors />
-      </TankStackProvider>
+      {children}
     </ThemeProvider>
   );
 };

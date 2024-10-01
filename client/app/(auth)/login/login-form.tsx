@@ -8,7 +8,7 @@ import { SignInInput } from "@/schemas/auth";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import ContinueBtn from "../continue-btn";
-import PasswordInput from "../../../components/password-input";
+import PasswordInput from "@/components/password-input";
 import { useMutation } from "@tanstack/react-query";
 import { clearEmailRegistered, reActivateAccount, signIn } from "../actions";
 import { useRouter } from "next/navigation";
@@ -24,6 +24,7 @@ export const SignInForm = ({
   const [accountSuspended, setAccountSuspended] =
     React.useState<boolean>(false);
   const router = useRouter();
+
   const [formData, setFormData] = React.useState<SignInInput>({
     email: registered || email || "",
     password: "",

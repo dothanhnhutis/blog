@@ -6,47 +6,52 @@ import {
   EditPictureInput,
   EditProfileInput,
 } from "@/schemas/user";
-import { cookieServer } from "@/app/actions";
+import { cookies } from "next/headers";
 
 export async function editProfile(input: EditProfileInput) {
-  const { success, data } = await userApi.editProfile(
-    await cookieServer(),
-    input
-  );
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  const { success, data } = await userApi.editProfile(allCookie, input);
   return { success, message: data.message };
 }
 
 export async function editPicture(input: EditPictureInput) {
-  const { success, data } = await userApi.editPicture(
-    await cookieServer(),
-    input
-  );
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  const { success, data } = await userApi.editPicture(allCookie, input);
   return { success, message: data.message };
 }
 
 export async function editPassword(input: EditPasswordInput) {
-  const { success, data } = await userApi.editPassword(
-    await cookieServer(),
-    input
-  );
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  const { success, data } = await userApi.editPassword(allCookie, input);
   return { success, message: data.message };
 }
 
 export async function createPassword(
   input: Omit<EditPasswordInput, "oldPassword">
 ) {
-  const { success, data } = await userApi.createPassword(
-    await cookieServer(),
-    input
-  );
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  const { success, data } = await userApi.createPassword(allCookie, input);
   return { success, message: data.message };
 }
 
 export async function setMFA(deviceName: string) {
-  const { success, data } = await userApi.setupMFA(
-    await cookieServer(),
-    deviceName
-  );
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  const { success, data } = await userApi.setupMFA(allCookie, deviceName);
   if (success) {
     return { success, message: data.message, data: data.data };
   } else {
@@ -58,10 +63,11 @@ export async function enableMFA(input: {
   mfa_code1: string;
   mfa_code2: string;
 }) {
-  const { success, data } = await userApi.enableMFA(
-    await cookieServer(),
-    input
-  );
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  const { success, data } = await userApi.enableMFA(allCookie, input);
   if (success) {
     return { success, message: data.message, data: data.data };
   } else {
@@ -73,10 +79,11 @@ export async function disableMFA(input: {
   mfa_code1: string;
   mfa_code2: string;
 }) {
-  const { success, data } = await userApi.disableMFA(
-    await cookieServer(),
-    input
-  );
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  const { success, data } = await userApi.disableMFA(allCookie, input);
   return { success, message: data.message };
 }
 
@@ -84,8 +91,12 @@ export async function disconnectOauth(input: {
   provider: string;
   providerId: string;
 }) {
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
   const { success, data } = await userApi.disconnectOauthProvider(
-    await cookieServer(),
+    allCookie,
     input
   );
   return { success, message: data.message };

@@ -14,7 +14,11 @@ export async function cookieServer() {
 }
 
 export async function getCurrentUser() {
-  const { success, data } = await userApi.currentUser(await cookieServer());
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  const { success, data } = await userApi.currentUser(allCookie);
   return success ? data : undefined;
 }
 
@@ -24,7 +28,11 @@ export async function recover(email: string) {
 }
 
 export async function disactivateAccount(path?: string) {
-  const { success } = await userApi.disactivateAccount(await cookieServer());
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  const { success } = await userApi.disactivateAccount(allCookie);
   if (success) {
     cookies().delete("session");
     if (path) revalidatePath(path);
@@ -33,7 +41,12 @@ export async function disactivateAccount(path?: string) {
 }
 
 export async function signOut(path?: string) {
-  await userApi.signOut(await cookieServer());
+  const allCookie = cookies()
+    .getAll()
+    .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
+    .join("; ");
+  const { success } = await userApi.disactivateAccount(allCookie);
+  await userApi.signOut(allCookie);
   cookies().delete("session");
   if (path) revalidatePath(path);
   redirect(DEFAULT_LOGOUT_REDIRECT);

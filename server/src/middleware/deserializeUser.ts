@@ -22,16 +22,7 @@ declare global {
 }
 
 const deserializeUser: Middleware = async (req, res, next) => {
-  const cookies = req.get("cookie");
-  if (!cookies || !cookie.parse(cookies)[configs.SESSION_KEY_NAME])
-    return next();
-  const cookiesParser = cookie.parse(cookies)[configs.SESSION_KEY_NAME];
-  req.sessionKey = decrypt(cookiesParser, configs.SESSION_SECRET);
-  req.sessionData = await getSession(req.sessionKey);
-  if (!req.sessionData) {
-    res.clearCookie(configs.SESSION_KEY_NAME);
-    return next();
-  }
+  if (!req.sessionData || !req.sessionKey) return next();
 
   req.user = await getUserById(req.sessionData.userId, {
     oauthProviders: {
@@ -58,7 +49,6 @@ const deserializeUser: Middleware = async (req, res, next) => {
     res.clearCookie(configs.SESSION_KEY_NAME);
     await deleteSessionByKey(req.sessionKey);
   }
-
   return next();
 };
 export default deserializeUser;

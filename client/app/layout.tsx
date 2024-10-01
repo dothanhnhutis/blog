@@ -16,6 +16,8 @@ import constants from "@/constants";
 // });
 
 import { Montserrat } from "next/font/google";
+import { TankStackProvider } from "@/components/providers/tankStack-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -45,7 +47,12 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${montserrat.variable} `}
     >
-      <body className="font-sans relative">{children}</body>
+      <body className="font-sans relative">
+        <TankStackProvider>
+          {children}
+          <Toaster visibleToasts={5} richColors />
+        </TankStackProvider>
+      </body>
     </html>
   );
 }

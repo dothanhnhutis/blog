@@ -199,6 +199,7 @@ export async function signIn(
 
   const { sessionKey, cookieOpt } = await createSession({
     userId: user.id,
+    mfaVerified: false,
     reqIp: req.ip || "",
     userAgent: req.headers["user-agent"] || "",
   });
@@ -384,6 +385,7 @@ export async function signInWithGoogleCallBack(
 
   const { sessionKey, cookieOpt } = await createSession({
     userId: user.id,
+    mfaVerified: true,
     reqIp: req.ip || "",
     userAgent: req.headers["user-agent"] || "",
   });
