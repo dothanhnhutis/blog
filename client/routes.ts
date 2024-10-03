@@ -11,6 +11,7 @@ const BaseRoutes: RegExp =
 const PostRoutes: RegExp = /^\/manager\/posts(\/create|.+\/edit)?$/;
 const ProductRoutes: RegExp = /^\/manager\/products(\/create|.+\/edit)?$/;
 const UsersRoutes: RegExp = /^\/manager\/users(\/create|.+\/edit)?$/;
+const UsersRoutes1: RegExp = /^\/(profile|security|sessions|settings)?$/;
 
 export const privateRegExpRoutes = [
   BaseRoutes,

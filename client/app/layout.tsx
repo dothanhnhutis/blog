@@ -47,7 +47,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${montserrat.variable} `}
     >
-      <body className="font-sans relative">
+      <body className="font-sans relative ">
         <TankStackProvider>
           {children}
           <Toaster visibleToasts={5} richColors />

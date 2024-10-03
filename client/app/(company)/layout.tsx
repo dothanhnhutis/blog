@@ -1,15 +1,8 @@
 import React from "react";
-import Footer from "./footer";
-import Header from "./header";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 
 const CompanyLayout = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <>
-      <Header />
-      {children}
-      <Footer />
-    </>
-  );
+  return <DefaultLayout>{children}</DefaultLayout>;
 };
 
 export default CompanyLayout;

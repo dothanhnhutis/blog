@@ -1,5 +1,3 @@
-import { TankStackProvider } from "@/components/providers/tankStack-provider";
-import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import React from "react";
 
