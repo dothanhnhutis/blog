@@ -48,5 +48,7 @@ export async function getGoogleUserProfile(props: {
     version: "v2",
   });
 
-  return (await oauth2.userinfo.get()).data as GoogleUserInfo;
+  const userinfo = await oauth2.userinfo.get();
+
+  return userinfo.data as GoogleUserInfo;
 }
