@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { hashData, randId } from "@/utils/helper";
 import { SignUpReq } from "@/schema/auth";
 import { User } from "@/schema/user";
-import { GoogleUserInfo } from "@/utils/oauth";
+import { InsertUserWithProvider } from "@/utils/oauth";
 import { signJWT } from "@/utils/jwt";
 import configs from "@/configs";
 import { emaiEnum, sendMail } from "@/utils/nodemailer";
@@ -11,27 +11,20 @@ import { emaiEnum, sendMail } from "@/utils/nodemailer";
 export const userSelectDefault: Prisma.UserSelect = {
   id: true,
   email: true,
-  role: true,
-  password: true,
   emailVerified: true,
+  password: true,
+  role: true,
   status: true,
-  // hasPassword: true,
-  mFAEnabled: true,
-  profile: {
+  firstName: true,
+  lastName: true,
+  phoneNumber: true,
+  picture: true,
+  mfa: {
     select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      photo: true,
-      coverPhoto: true,
-      phone: true,
-      address: true,
-      // postalCode: true,
-      // country: true,
-      // region: true,
-      // city: true,
-      bio: true,
-      urls: true,
+      secretKey: true,
+      lastAccess: true,
+      backupCodes: true,
+      backupCodesUsed: true,
     },
   },
   oauthProviders: {
@@ -119,22 +112,22 @@ export async function getUserByToken(
 }
 
 export async function getUserByProvider(
-  providerName: string,
+  provider: string,
   providerId: string,
   select?: Prisma.UserSelect
 ) {
-  const provider = await prisma.oauthProvider.findUnique({
+  const info = await prisma.oauthProvider.findUnique({
     where: {
       provider_providerId: {
-        provider: providerName,
+        provider,
         providerId,
       },
     },
   });
-  if (!provider) return null;
+  if (!info) return null;
   return await prisma.user.findUnique({
     where: {
-      id: provider.userId,
+      id: info.userId,
     },
     select: Prisma.validator<Prisma.UserSelect>()({
       ...userSelectDefault,
@@ -180,12 +173,8 @@ export async function insertUserWithPassword(
       password: hash,
       emailVerificationExpires: new Date(expires * 1000),
       emailVerificationToken: session,
-      profile: {
-        create: {
-          firstName,
-          lastName,
-        },
-      },
+      firstName,
+      lastName,
     },
     select: Prisma.validator<Prisma.UserSelect>()({
       ...userSelectDefault,
@@ -205,24 +194,17 @@ export async function insertUserWithPassword(
   return user;
 }
 
-export async function insertUserWithGoogle(
-  googleData: GoogleUserInfo,
+export async function insertUserWithProvider(
+  { provider, providerId, ...info }: InsertUserWithProvider,
   select?: Prisma.UserSelect
 ) {
   const data: Prisma.UserCreateInput = {
-    email: googleData.email,
-    emailVerified: googleData.verified_email,
-    profile: {
-      create: {
-        firstName: googleData.given_name,
-        lastName: googleData.family_name,
-        photo: googleData.picture,
-      },
-    },
+    emailVerified: true,
+    ...info,
     oauthProviders: {
       create: {
-        provider: googleData.name,
-        providerId: googleData.id,
+        provider,
+        providerId,
       },
     },
   };
@@ -235,6 +217,7 @@ export async function insertUserWithGoogle(
     }),
   });
 }
+
 // Update
 export type UpdateUserByIdInput = {
   twoFAEnabled?: boolean | undefined;
@@ -295,26 +278,9 @@ export async function enableMFA(
       secretKey: input.secretKey,
     },
   });
-
-  await prisma.user.update({
-    where: {
-      id,
-    },
-    data: {
-      mFAEnabled: true,
-    },
-  });
 }
 
 export async function disableMFA(id: string) {
-  await prisma.user.update({
-    where: {
-      id,
-    },
-    data: {
-      mFAEnabled: false,
-    },
-  });
   await prisma.mFA.delete({
     where: {
       userId: id,

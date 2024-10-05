@@ -3,6 +3,7 @@ import { BadRequestError, NotFoundError } from "@/error-handler";
 import {
   deteleDataCache,
   getDataCache,
+  setDataCache,
   setDataInSecondCache,
 } from "@/redis/cache";
 import { createSession, deleteSessionByKey } from "@/redis/session";
@@ -12,6 +13,7 @@ import {
   SendReActivateAccountReq,
   SendVerificationEmailReq,
   SignInReq,
+  signInWithGoogleCallBackQuery,
   SignUpReq,
 } from "@/schema/auth";
 import { updateBackupCodeUsedById } from "@/services/mfa";
@@ -20,7 +22,7 @@ import {
   getUserByEmail,
   getUserByProvider,
   getUserByToken,
-  insertUserWithGoogle,
+  insertUserWithProvider,
   insertUserWithPassword,
 } from "@/services/user";
 import {
@@ -36,6 +38,7 @@ import { emaiEnum, sendMail } from "@/utils/nodemailer";
 import { generateGoogleAuthUrl, getGoogleUserProfile } from "@/utils/oauth";
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { z } from "zod";
 
 export async function sendVerificationEmail(
   req: Request<{}, {}, SendVerificationEmailReq["body"]>,
@@ -112,7 +115,8 @@ export async function recoverAccount(
 ) {
   const { email } = req.body;
   const existingUser = await getUserByEmail(email, {
-    profile: true,
+    passwordResetToken: true,
+    passwordResetExpires: true,
   });
   if (!existingUser) throw new BadRequestError("Invalid email");
 
@@ -140,8 +144,7 @@ export async function recoverAccount(
     template: emaiEnum.RECOVER_ACCOUNT,
     receiver: email,
     locals: {
-      username:
-        existingUser.profile?.firstName + "" + existingUser.profile?.lastName,
+      username: existingUser.firstName + "" + existingUser.lastName,
       recoverLink,
     },
   });
@@ -156,26 +159,21 @@ export async function signIn(
   res: Response
 ) {
   const { email, password, mfa_code } = req.body;
-  const user = await getUserByEmail(email, {
-    password: true,
-    status: true,
-    mFAEnabled: true,
-    mFA: true,
-  });
+  const user = await getUserByEmail(email);
 
   if (!user || !user.password || !(await compareData(user.password, password)))
     throw new BadRequestError("Invalid email or password");
 
-  if (user.mFAEnabled) {
+  if (user.mfa) {
     if (!mfa_code) throw new BadRequestError("MFA code is required");
 
     const mFAValidate =
       validateMFA({
-        secret: user.mFA!.secretKey,
+        secret: user.mfa.secretKey,
         token: mfa_code,
       }) == 0;
-    const isBackupCode = user.mFA!.backupCodes.includes(mfa_code);
-    const isBackupCodeUsed = user.mFA!.backupCodesUsed.includes(mfa_code);
+    const isBackupCode = user.mfa.backupCodes.includes(mfa_code);
+    const isBackupCodeUsed = user.mfa.backupCodesUsed.includes(mfa_code);
 
     if (!mFAValidate) {
       if (isBackupCodeUsed)
@@ -199,7 +197,6 @@ export async function signIn(
 
   const { sessionKey, cookieOpt } = await createSession({
     userId: user.id,
-    mfaVerified: false,
     reqIp: req.ip || "",
     userAgent: req.headers["user-agent"] || "",
   });
@@ -295,7 +292,7 @@ export async function sendReactivateAccount(
     template: emaiEnum.REACTIVATE_ACCOUNT,
     receiver: req.body.email,
     locals: {
-      username: user.profile?.firstName + "" + user.profile?.lastName,
+      username: user.firstName + "" + user.lastName,
       reactivateLink,
     },
   });
@@ -334,6 +331,7 @@ export async function signInWithGoogle(
   req: Request<{}, {}, {}, { redir?: string }>,
   res: Response
 ) {
+  const state = await randId();
   const url = generateGoogleAuthUrl({
     access_type: "offline",
     scope: [
@@ -341,51 +339,87 @@ export async function signInWithGoogle(
       "https://www.googleapis.com/auth/userinfo.profile",
       "openid",
     ],
-    state: req.query.redir || undefined,
+    state,
     prompt: "consent",
   });
+
+  await setDataInSecondCache(`oauth:${state}`, state, 60 * 5);
+
   return res.redirect(url);
 }
 
 const ERROR_REDIRECT = `${configs.CLIENT_URL}/auth/error`;
-const SUCCESS_REDIRECT = `${configs.CLIENT_URL}/account/profile`;
+const SUCCESS_REDIRECT = `${configs.CLIENT_URL}/success/signin`;
 
-export async function signInWithGoogleCallBack(
-  req: Request<{}, {}, {}, { code?: string; error?: string }>,
-  res: Response
-) {
-  const { code, error } = req.query;
+export async function signInWithGoogleCallBack(req: Request, res: Response) {
+  const { success, data } = signInWithGoogleCallBackQuery.safeParse(req.query);
+  if (!success) return res.redirect(ERROR_REDIRECT);
 
-  if (error || !code || typeof code == "object")
-    return res.redirect(ERROR_REDIRECT);
+  const query: z.infer<typeof signInWithGoogleCallBackQuery> = data;
 
-  const userInfo = await getGoogleUserProfile({ code });
-  let user = await getUserByProvider(userInfo.id, "google");
+  if ("error" in query) return res.redirect(ERROR_REDIRECT);
 
+  const state = getDataCache(`oauth:${query.state}`);
+  // Invalid state parameter. Possible CSRF attack.
+  if (!state) return res.redirect(ERROR_REDIRECT);
+
+  const userInfo = await getGoogleUserProfile({ code: query.code });
+  let user = await getUserByProvider("google", userInfo.id);
   if (!user) {
     const existAccount = await getUserByEmail(userInfo.email);
+
     if (existAccount) {
-      return res
-        .cookie("registered", userInfo.email, {
-          httpOnly: true,
-          secure: configs.NODE_ENV == "production",
-        })
-        .redirect(`${configs.CLIENT_URL}/login`);
+      if (existAccount.password) {
+        return res
+          .cookie("oauth_error", "registered", {
+            httpOnly: true,
+            secure: configs.NODE_ENV == "production",
+          })
+          .redirect(`${configs.CLIENT_URL}/login`);
+      } else {
+        // facebook provider
+        return res
+          .cookie("oauth_error", "fb_oauth", {
+            httpOnly: true,
+            secure: configs.NODE_ENV == "production",
+          })
+          .redirect(`${configs.CLIENT_URL}/login`);
+      }
     }
-    user = await insertUserWithGoogle(userInfo);
+    user = await insertUserWithProvider({
+      provider: "google",
+      providerId: userInfo.id,
+      email: userInfo.email,
+      firstName: userInfo.given_name,
+      lastName: userInfo.family_name,
+      picture: userInfo.picture,
+    });
   }
 
-  if (user.status == "DISABLED")
-    throw new BadRequestError(
-      "Your account has been locked please contact the administrator"
-    );
+  if (user.status == "DISABLED") {
+    // throw new BadRequestError(
+    //   "Your account has been locked please contact the administrator"
+    // );
+    return res
+      .cookie("oauth_error", "disabled", {
+        httpOnly: true,
+        secure: configs.NODE_ENV == "production",
+      })
+      .redirect(`${configs.CLIENT_URL}/login`);
+  }
 
-  if (user.status == "SUSPENDED")
-    throw new BadRequestError("Your account has been suspended");
+  if (user.status == "SUSPENDED") {
+    // throw new BadRequestError("Your account has been suspended");
+    return res
+      .cookie("oauth_error", "suspended", {
+        httpOnly: true,
+        secure: configs.NODE_ENV == "production",
+      })
+      .redirect(`${configs.CLIENT_URL}/login`);
+  }
 
   const { sessionKey, cookieOpt } = await createSession({
     userId: user.id,
-    mfaVerified: true,
     reqIp: req.ip || "",
     userAgent: req.headers["user-agent"] || "",
   });

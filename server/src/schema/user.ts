@@ -235,31 +235,24 @@ export type DisconnectOauthProviderReq = z.infer<
 >;
 export type editProfileReq = z.infer<typeof editProfileSchema>;
 
-type Role = "ADMIN" | "MANAGER" | "SALER" | "BLOGER" | "CUSTOMER";
+type Role = "SUPER_ADMIN" | "ADMIN" | "BUSINESS_PARTNER" | "CUSTOMER";
 type UserStatus = "ACTIVE" | "SUSPENDED" | "DISABLED";
 export type User = {
   id: string;
-  email: string |null;
-  role: Role;
+  email: string | null;
   emailVerified: boolean;
-  status: UserStatus;
   password: string | null;
-  // hasPassword: boolean;
-  mFAEnabled: boolean;
-  profile: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    photo: string | null;
-    coverPhoto: string | null;
-    phone: string;
-    address: string;
-    // postalCode: string;
-    // country: string;
-    // region: string;
-    // city: string;
-    bio: string;
-    urls: string[];
+  role: Role;
+  status: UserStatus;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string | null;
+  picture: string | null;
+  mfa: {
+    secretKey: string;
+    lastAccess: Date;
+    backupCodes: string[];
+    backupCodesUsed: string[];
   } | null;
   oauthProviders: {
     id: string;

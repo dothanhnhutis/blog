@@ -1,3 +1,4 @@
+import { error } from "console";
 import z from "zod";
 
 export const signinSchema = z.object({
@@ -131,6 +132,20 @@ export const sendReActivateAccountSchema = z.object({
     })
     .strict(),
 });
+
+export const signInWithGoogleCallBackQuery = z.union([
+  z.object({
+    state: z.string(),
+    error: z.string(),
+  }),
+  z.object({
+    state: z.string(),
+    code: z.string(),
+    scope: z.string(),
+    authuser: z.string(),
+    prompt: z.string(),
+  }),
+]);
 
 export type SignInReq = z.infer<typeof signinSchema>;
 export type SignUpReq = z.infer<typeof signupSchema>;

@@ -36,10 +36,8 @@ export type GoogleUserInfo = {
   family_name: string;
   picture: string;
 };
-export async function getGoogleUserProfile(props: {
-  code: string;
-  redirect_uri?: string;
-}) {
+
+export async function getGoogleUserProfile(props: { code: string }) {
   const { tokens } = await oAuth2Client.getToken(props);
   oAuth2Client.setCredentials(tokens);
 
@@ -52,3 +50,12 @@ export async function getGoogleUserProfile(props: {
 
   return userinfo.data as GoogleUserInfo;
 }
+
+export type InsertUserWithProvider = {
+  providerId: string;
+  provider: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  picture: string;
+};

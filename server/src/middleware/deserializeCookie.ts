@@ -1,15 +1,8 @@
 import { RequestHandler as Middleware } from "express";
 import cookie from "cookie";
 import configs from "@/configs";
-import { User } from "@/schema/user";
-import { getUserById } from "@/services/user";
-import {
-  deleteSessionByKey,
-  getSession,
-  ISessionData,
-  sessionLastAccess,
-} from "@/redis/session";
-import { decrypt, encrypt } from "@/utils/helper";
+import { getSession, ISessionData } from "@/redis/session";
+import { decrypt } from "@/utils/helper";
 
 declare global {
   namespace Express {

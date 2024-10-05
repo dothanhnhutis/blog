@@ -15,7 +15,7 @@ const LoginPage = ({
   return (
     <SignInForm
       email={searchParams.email}
-      registered={cookies().get("registered")?.value}
+      oauth_error={cookies().get("oauth_error")?.value}
     />
   );
 };

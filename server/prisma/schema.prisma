@@ -9,10 +9,9 @@ datasource db {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
-  MANAGER
-  SALER
-  BLOGER
+  BUSINESS_PARTNER
   CUSTOMER
 }
 
@@ -31,22 +30,20 @@ model User {
   password                 String?
   passwordResetToken       String?         @unique
   passwordResetExpires     DateTime? //4h
-  mFAEnabled               Boolean         @default(false)
   role                     Role            @default(CUSTOMER)
   status                   Status          @default(ACTIVE)
   reActiveToken            String?         @unique
   reActiveExpires          DateTime? //4h
+  firstName                String
+  lastName                 String
+  phoneNumber              String?
+  picture                  String?
   createdAt                DateTime        @default(now())
   updatedAt                DateTime        @updatedAt
   oauthProviders           OauthProvider[]
-  // posts                    Post[]
-  // products                 Product[]
-  mFA                      MFA?
-  profile                  Profile?
-  taskAssignees            TaskAssignees[]
-  task                     Task[]
+  mfa                      MFA?
 
-  @@index([email, passwordResetToken, reActiveToken])
+  @@index([email, emailVerificationToken, passwordResetToken, reActiveToken])
 }
 
 model OauthProvider {
@@ -63,132 +60,15 @@ model OauthProvider {
 }
 
 model MFA {
-  id              String   @id @default(uuid())
   secretKey       String
-  lastTwoFATime   DateTime @updatedAt
+  lastAccess      DateTime @updatedAt
   backupCodes     String[]
   backupCodesUsed String[] @default([])
-  userId          String   @unique
+  userId          String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@id([userId])
   @@index([userId, backupCodes, backupCodesUsed])
 }
-
-model Profile {
-  id         String   @id @default(uuid())
-  firstName  String
-  lastName   String
-  photo      String?
-  coverPhoto String?
-  phone      String   @default("")
-  address    String   @default("")
-  bio        String   @default("")
-  urls       String[] @default([])
-  userId     String   @unique
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-enum TaskStatus {
-  TO_DO
-  ON_PROGRESS
-  IN_REVIEW
-  COMPLETED
-}
-
-enum TaskPriority {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-model TaskAssignees {
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  taskId String
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  @@id([userId, taskId])
-}
-
-model TagTask {
-  name      String      @unique
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  taskToTag TaskToTag[]
-
-  @@id([name])
-  @@index([name])
-}
-
-model TaskToTag {
-  taskId  String
-  task    Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  tagName String
-  tag     TagTask @relation(fields: [tagName], references: [name], onDelete: Cascade)
-
-  @@id([taskId, tagName])
-  @@index([taskId, tagName])
-}
-
-model Task {
-  id            String          @id @default(uuid())
-  name          String
-  description   String
-  status        TaskStatus      @default(TO_DO)
-  tags          TaskToTag[]
-  startDate     DateTime
-  dueDate       DateTime
-  priority      TaskPriority
-  createdBy     User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  createdById   String
-  subTasks      SubTask[]
-  taskAssignees TaskAssignees[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-
-  @@index([name, status, startDate, dueDate, priority, createdById])
-}
-
-enum SubTaskStatus {
-  ASSIGNED
-  PENDING_REVIEW
-  ACCEPTED
-  REJECTED
-}
-
-model SubTask {
-  id               String        @id @default(uuid())
-  subTaskName      String        @default("")
-  enableAttachment Boolean       @default(false)
-  parentTask       Task          @relation(fields: [parentTaskId], references: [id], onDelete: Cascade)
-  parentTaskId     String
-  status           SubTaskStatus @default(ASSIGNED)
-  submits          TaskSubmit[]
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-
-  @@unique([subTaskName, parentTaskId])
-  @@index([subTaskName, parentTaskId])
-}
-
-model TaskSubmit {
-  id           String   @id @default(uuid())
-  subTask      SubTask  @relation(fields: [subTaskId], references: [id], onDelete: Cascade)
-  subTaskId    String
-  attachments  String[] @default([])
-  comments     String   @default("")
-  taskSubmitAt DateTime @default(now())
-}
-
-// model TaskAttachment {
-//   id       String @id @default(uuid())
-//   fileName String
-//   type     String
-//   url      String
-
-//   @@index([fileName, url, type])
-// }

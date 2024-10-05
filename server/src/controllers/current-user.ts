@@ -91,9 +91,9 @@ export async function setupMFA(
   req: Request<{}, {}, SetupMFAReq["body"]>,
   res: Response
 ) {
-  const { id, mFAEnabled } = req.user!;
+  const { id, mfa } = req.user!;
   const { deviceName } = req.body;
-  if (mFAEnabled)
+  if (mfa)
     throw new BadRequestError(
       "Multi-factor authentication (MFA) has been enabled"
     );
@@ -152,10 +152,10 @@ export async function enableMFAAccount(
   req: Request<{}, {}, EnableMFAReq["body"]>,
   res: Response
 ) {
-  const { id, mFAEnabled } = req.user!;
+  const { id, mfa } = req.user!;
   const { mfa_code1, mfa_code2 } = req.body;
 
-  if (mFAEnabled)
+  if (mfa)
     throw new BadRequestError(
       "Multi-factor authentication (MFA) has been enabled"
     );
@@ -187,10 +187,10 @@ export async function enableMFAAccount(
 }
 
 export async function disableMFAAccount(req: Request, res: Response) {
-  const { id, mFAEnabled } = req.user!;
+  const { id, mfa } = req.user!;
   const { mfa_code1, mfa_code2 } = req.body;
 
-  if (!mFAEnabled)
+  if (!mfa)
     throw new BadRequestError(
       "Multi-factor authentication (MFA) has been disable"
     );
@@ -253,7 +253,7 @@ export async function changePassword(
 }
 
 export async function sendVerifyEmail(req: Request, res: Response) {
-  const { id, emailVerified, email, profile } = req.user!;
+  const { id, emailVerified, email, firstName, lastName } = req.user!;
   if (emailVerified) throw new BadRequestError("Verified email");
 
   const user = await getUserById(id, {
@@ -290,7 +290,7 @@ export async function sendVerifyEmail(req: Request, res: Response) {
     template: emaiEnum.VERIFY_EMAIL,
     receiver: email!,
     locals: {
-      username: profile!.firstName + " " + profile!.lastName,
+      username: firstName + " " + lastName,
       verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
     },
   });
@@ -304,7 +304,7 @@ export async function sendChangeEmail(
   req: Request<{}, {}, ChangeEmailReq["body"]>,
   res: Response
 ) {
-  const { id, emailVerified, email, profile } = req.user!;
+  const { id, emailVerified, email, firstName, lastName } = req.user!;
   const { email: newEmail } = req.body;
 
   if (newEmail == email)
@@ -352,7 +352,7 @@ export async function sendChangeEmail(
       template: emaiEnum.VERIFY_EMAIL,
       receiver: newEmail,
       locals: {
-        username: profile!.firstName + " " + profile!.lastName,
+        username: firstName + " " + lastName,
         verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
       },
     });
@@ -432,7 +432,7 @@ export async function connectOauthProviderCallback(
 
   const userInfo = await getGoogleUserProfile({
     code,
-    redirect_uri: `${configs.SERVER_URL}/api/v1/users/connect/${provider}/callback`,
+    // redirect_uri: `${configs.SERVER_URL}/api/v1/users/connect/${provider}/callback`,
   });
   await insertGoogleLink(userInfo.id, state);
   return res.status(StatusCodes.OK).json({ message: "oke" });

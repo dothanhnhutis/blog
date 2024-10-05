@@ -15,10 +15,10 @@ import { useRouter } from "next/navigation";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 
 export const SignInForm = ({
-  registered,
+  oauth_error,
   email,
 }: {
-  registered?: string;
+  oauth_error?: string;
   email?: string;
 }) => {
   const [accountSuspended, setAccountSuspended] =
@@ -26,7 +26,7 @@ export const SignInForm = ({
   const router = useRouter();
 
   const [formData, setFormData] = React.useState<SignInInput>({
-    email: registered || email || "",
+    email: email || "",
     password: "",
     mfa_code: "",
   });
@@ -101,7 +101,7 @@ export const SignInForm = ({
     handleReset();
   };
 
-  const registeredRef = React.useRef<boolean>(!!registered || false);
+  const oauthErrorRef = React.useRef<string>(oauth_error || "");
 
   React.useEffect(() => {
     const handleClearEmailRegistered = async () => {
@@ -125,7 +125,7 @@ export const SignInForm = ({
           </p>
         </div>
       )}
-      {registeredRef.current && (
+      {oauthErrorRef.current == "fb_oauth" && (
         <div className="flex items-center gap-3 rounded-lg bg-amber-200 text-orange-500 sm:rounded-xl sm:max-w-md mx-4 sm:mx-auto transition-all mt-4 mb-10 p-4 ">
           <OctagonAlertIcon className="size-6  flex flex-shrink-0" />
           <p className="text-sm ">

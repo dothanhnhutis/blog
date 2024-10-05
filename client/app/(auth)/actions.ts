@@ -68,5 +68,5 @@ export async function activateAccount(token: string) {
 }
 
 export async function clearEmailRegistered() {
-  cookies().delete("registered");
+  cookies().delete("oauth_error");
 }
