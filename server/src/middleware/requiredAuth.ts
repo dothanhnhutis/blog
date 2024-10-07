@@ -11,8 +11,13 @@ export const authMiddleware =
     if (!req.user) {
       throw new NotAuthorizedError();
     }
+    let newProps: Partial<TAuthMiddleware> = { ...props };
 
-    if (props?.emailVerified && !req.user.emailVerified) {
+    if (!props) {
+      newProps.emailVerified = true;
+    }
+
+    if (newProps.emailVerified && !req.user.emailVerified) {
       throw new PermissionError("Your email hasn't been verified");
     }
 

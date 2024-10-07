@@ -2,7 +2,7 @@ import prisma from "@/utils/db";
 import { Prisma } from "@prisma/client";
 import { hashData, randId } from "@/utils/helper";
 import { SignUpReq } from "@/schema/auth";
-import { CreateUserReq, EditUserReq, User } from "@/schema/user";
+import { CreateUserReq, EditUserReq, FilterUserReq, User } from "@/schema/user";
 import { UserProfile } from "@/utils/oauth";
 import { signJWT } from "@/utils/jwt";
 import configs from "@/configs";
@@ -147,6 +147,155 @@ export async function getUserByIds(ids: string[], select?: Prisma.UserSelect) {
       ...select,
     }),
   });
+}
+
+export type SearchUserProps = {
+  where?: {
+    ids?: string[];
+    emails?: string[];
+    emailVerified?: boolean;
+    fullName?: string;
+    statuses?: User["status"][];
+    roles?: User["role"][];
+    create_range?: string[];
+  };
+
+  limit?: number;
+  page?: number;
+  orderBy?: Record<
+    | "email"
+    | "firstName"
+    | "lastName"
+    | "role"
+    | "emailVerified"
+    | "status"
+    | "createdAt"
+    | "updatedAt",
+    "asc" | "desc"
+  >;
+  select?: Prisma.UserSelect;
+};
+export async function searchUser(input: SearchUserProps) {
+  const take = input.limit || 10;
+  const page = (!input.page || input.page <= 0 ? 1 : input.page) - 1;
+  const skip = page * take;
+
+  const args: Prisma.UserFindManyArgs = {
+    where: {
+      AND: [
+        {
+          role: {
+            notIn: ["SUPER_ADMIN"],
+          },
+        },
+      ],
+    },
+    skip,
+    take,
+    select: Prisma.validator<Prisma.UserSelect>()({
+      ...userSelectDefault,
+      ...input.select,
+      password: false,
+    }),
+  };
+
+  if (input.where) {
+    const {
+      create_range,
+      ids,
+      emails,
+      emailVerified,
+      fullName,
+      roles,
+      statuses,
+    } = input.where;
+
+    if (ids) {
+      args.where = {
+        ...args.where,
+        id: {
+          in: ids,
+        },
+      };
+    }
+
+    if (emails) {
+      args.where = {
+        ...args.where,
+        email: {
+          in: emails,
+        },
+      };
+    }
+    if (emailVerified) {
+      args.where = {
+        ...args.where,
+        emailVerified,
+      };
+    }
+    if (fullName) {
+      console.log(fullName);
+      args.where = {
+        ...args.where,
+        OR: [
+          {
+            firstName: {
+              contains: fullName,
+            },
+          },
+          {
+            lastName: {
+              contains: fullName,
+            },
+          },
+        ],
+      };
+    }
+
+    if (roles) {
+      args.where = {
+        ...args.where,
+        role: {
+          in: roles,
+        },
+      };
+    }
+    if (statuses) {
+      args.where = {
+        ...args.where,
+        status: {
+          in: statuses,
+        },
+      };
+    }
+
+    if (create_range) {
+      args.where = {
+        ...args.where,
+        createdAt: {
+          gte: create_range[0],
+          lte: create_range[1],
+        },
+      };
+    }
+  }
+  if (input.orderBy) {
+    args.orderBy = input.orderBy;
+  }
+
+  const [users, total] = await prisma.$transaction([
+    prisma.user.findMany(args),
+    prisma.user.count({ where: args.where }),
+  ]);
+
+  return {
+    users,
+    metadata: {
+      hasNextPage: skip + take < total,
+      totalPage: Math.ceil(total / take),
+      totalItem: total,
+    },
+  };
 }
 
 // Create

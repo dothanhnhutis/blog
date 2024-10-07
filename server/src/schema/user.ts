@@ -212,26 +212,87 @@ export const orderByEnum = z.enum(["asc", "desc"]);
 export const filterUserSchema = z.object({
   body: z
     .object({
-      id: z.array(z.string({})).nonempty(),
-      email: z.array(z.string({}).email()).nonempty(),
-      fullName: z.string({}),
-      role: z
+      ids: z
+        .array(z.string({ invalid_type_error: "id item must be string" }))
+        .nonempty("ids can not empty"),
+      emails: z
+        .array(z.string({ invalid_type_error: "" }).email("invalid email"))
+        .nonempty("emails can not empty"),
+      emailVerified: z.boolean({
+        invalid_type_error: "emailVerified must be boolean",
+      }),
+      fullName: z.string({
+        invalid_type_error: "fullName must be string.",
+      }),
+      roles: z
         .array(z.enum(["ADMIN", "BUSINESS_PARTNER", "CUSTOMER"]))
-        .nonempty(),
-      status: z.array(z.enum(["ACTIVE", "SUSPENDED", "DISABLED"])).nonempty(),
-      createRange: z.array(z.date()).length(2, ""),
-      order_by: z.record(
-        z.enum([
-          "firstName",
-          "lastName",
-          "email",
-          "emailVerified",
-          "createdAt",
-          "role",
-          "status",
-        ]),
-        orderByEnum
-      ),
+        .nonempty("roles can not empty"),
+      statuses: z
+        .array(z.enum(["ACTIVE", "SUSPENDED", "DISABLED"]))
+        .nonempty("statuses can not empty"),
+      created_range: z
+        .array(
+          z
+            .string({ invalid_type_error: "createRange[item] must be date" })
+            .datetime("createRange[item] invalid datetime")
+        )
+        .length(2, "createRange expect 2 item")
+        .refine((data) => new Date(data[0]) <= new Date(data[1]), {
+          message:
+            "The element at position 0 must be less than or equal to the element at position 1",
+          path: ["create_range"],
+        }),
+      order_by: z
+        .array(
+          z
+            .object({
+              email: z.enum(["asc", "desc"], {
+                message: "orderBy email must be enum 'asc'|'desc'",
+              }),
+              firstName: z.enum(["asc", "desc"], {
+                message: "orderBy firstName must be enum 'asc'|'desc'",
+              }),
+              lastName: z.enum(["asc", "desc"], {
+                message: "orderBy lastName must be enum 'asc'|'desc'",
+              }),
+              role: z.enum(["asc", "desc"], {
+                message: "orderBy role must be enum 'asc'|'desc'",
+              }),
+              emailVerified: z.enum(["asc", "desc"], {
+                message: "orderBy emailVerified must be enum 'asc'|'desc'",
+              }),
+              status: z.enum(["asc", "desc"], {
+                message: "orderBy status must be enum 'asc'|'desc'",
+              }),
+              createdAt: z.enum(["asc", "desc"], {
+                message: "orderBy createdAt must be enum 'asc'|'desc'",
+              }),
+              updatedAt: z.enum(["asc", "desc"], {
+                message: "orderBy updatedAt must be enum 'asc'|'desc'",
+              }),
+            })
+            .strip()
+            .partial()
+            .refine(
+              (data) => {
+                const keys = Object.keys(data);
+                return keys.length === 1;
+              },
+              {
+                message:
+                  "Each object must have exactly one key, either 'firstName'|'lastName'|'email'|'role'|'emailVerified'|'status'|'createdAt'|'updatedAt'",
+              }
+            )
+        )
+        .nonempty("order_by can not empty"),
+      limit: z
+        .number({ invalid_type_error: "limit must be number" })
+        .int("limit must be interger")
+        .gte(1, "limit must be greater than 1"),
+      page: z
+        .number({ invalid_type_error: "page must be number" })
+        .int("page must be interger")
+        .gte(1, "page must be greater than 1"),
     })
     .strip()
     .partial(),

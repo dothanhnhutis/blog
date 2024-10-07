@@ -1,4 +1,4 @@
-import express, { type Router } from "express";
+import express, { query, type Router } from "express";
 import {
   changeEmail,
   changePassword,
@@ -24,6 +24,7 @@ import {
   changePasswordSchema,
   editUserSchema,
   enableMFASchema,
+  filterUserSchema,
   sendChangeEmailSchema,
   setupMFASchema,
 } from "@/schema/user";
@@ -31,11 +32,22 @@ import {
   rateLimitSendChangeEmail,
   rateLimitUserId,
 } from "@/middleware/rateLimit";
-import { createUser, readUserById, updateUserById } from "@/controllers/user";
+import {
+  createUser,
+  readUserById,
+  updateUserById,
+  filterUser,
+} from "@/controllers/user";
 import checkPermission from "@/middleware/checkPermission";
 
 const router: Router = express.Router();
 function userRouter(): Router {
+  router.get(
+    "/users/_search",
+    authMiddleware(),
+    // validateResource(filterUserSchema),
+    filterUser
+  );
   router.get(
     "/users/connect/:provider(google|facebook)",
     authMiddleware(),
@@ -53,8 +65,8 @@ function userRouter(): Router {
   );
   router.get("/users/sessions", authMiddleware(), readAllSession);
   router.get(
-    "/users/:id",
-    authMiddleware({ emailVerified: false }),
+    "/users/:userId",
+    authMiddleware(),
     checkPermission(["SUPER_ADMIN", "ADMIN"]),
     readUserById
   );
@@ -100,13 +112,13 @@ function userRouter(): Router {
   );
   router.patch(
     "/users/change-email/otp",
-    authMiddleware({ emailVerified: true }),
+    authMiddleware(),
     validateResource(changeEmailSchema),
     changeEmail
   );
   router.put(
     "/users/:userId",
-    authMiddleware({ emailVerified: true }),
+    authMiddleware(),
     checkPermission(["SUPER_ADMIN", "ADMIN"]),
     validateResource(editUserSchema),
     updateUserById
@@ -114,7 +126,7 @@ function userRouter(): Router {
 
   router.put(
     "/users",
-    authMiddleware({ emailVerified: true }),
+    authMiddleware(),
     validateResource(editUserSchema),
     editProfile
   );
