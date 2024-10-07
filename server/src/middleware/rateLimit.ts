@@ -2,7 +2,6 @@ import { RecoverAccountReq, SendReActivateAccountReq } from "@/schema/auth";
 import { SendChangeEmailReq } from "@/schema/user";
 import { Request } from "express";
 import { rateLimit } from "express-rate-limit";
-// import { CreateContact } from "@/schemas/contact.schema";
 
 // export const rateLimitContact = rateLimit({
 //   windowMs: 60 * 1000,

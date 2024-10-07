@@ -2,7 +2,7 @@ import prisma from "@/utils/db";
 import { Prisma } from "@prisma/client";
 import { hashData, randId } from "@/utils/helper";
 import { SignUpReq } from "@/schema/auth";
-import { User } from "@/schema/user";
+import { CreateUserReq, EditUserReq, User } from "@/schema/user";
 import { UserProfile } from "@/utils/oauth";
 import { signJWT } from "@/utils/jwt";
 import configs from "@/configs";
@@ -150,6 +150,52 @@ export async function getUserByIds(ids: string[], select?: Prisma.UserSelect) {
 }
 
 // Create
+export async function insertUserByAdmin(
+  input: CreateUserReq["body"],
+  select?: Prisma.UserSelect
+) {
+  const { password, firstName, lastName, email, ...rest } = input;
+  const hash = hashData(password);
+
+  const expires: number = Math.floor((Date.now() + 4 * 60 * 60 * 1000) / 1000);
+  const session = await randId();
+  const token = signJWT(
+    {
+      type: "emailVerification",
+      session,
+      iat: expires,
+    },
+    configs.JWT_SECRET
+  );
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      password: hash,
+      emailVerificationExpires: new Date(expires * 1000),
+      emailVerificationToken: session,
+      firstName,
+      lastName,
+      ...rest,
+    },
+    select: Prisma.validator<Prisma.UserSelect>()({
+      ...userSelectDefault,
+      ...select,
+    }),
+  });
+
+  await sendMail({
+    template: emaiEnum.VERIFY_EMAIL,
+    receiver: email,
+    locals: {
+      username: firstName + " " + lastName,
+      verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
+    },
+  });
+
+  return user;
+}
+
 export async function insertUserWithPassword(
   input: SignUpReq["body"],
   select?: Prisma.UserSelect
@@ -220,7 +266,7 @@ export async function insertUserWithProvider(
   });
 }
 // Update
-export type UpdateUserByIdInput = {
+export type UpdateUserByIdInput = EditUserReq["body"] & {
   password?: string | null;
   emailVerified?: boolean | undefined;
   emailVerificationToken?: string | null;
@@ -231,10 +277,6 @@ export type UpdateUserByIdInput = {
   role?: User["role"] | undefined;
   reActiveExpires?: Date | null;
   reActiveToken?: string | null;
-  picture?: string | null;
-  firstName?: string | undefined;
-  lastName?: string | undefined;
-  phoneNumber?: string;
   email?: string | undefined;
 };
 
@@ -248,6 +290,29 @@ export async function editUserById(
   };
   if (input.password) {
     data.password = hashData(input.password);
+  }
+  if (input.email) {
+    const expires: number = Math.floor(
+      (Date.now() + 4 * 60 * 60 * 1000) / 1000
+    );
+    const session = await randId();
+    const token = signJWT(
+      {
+        type: "emailVerification",
+        session,
+        iat: expires,
+      },
+      configs.JWT_SECRET
+    );
+
+    await sendMail({
+      template: emaiEnum.VERIFY_EMAIL,
+      receiver: input.email,
+      locals: {
+        username: data.firstName + " " + data.lastName,
+        verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
+      },
+    });
   }
 
   return await prisma.user.update({

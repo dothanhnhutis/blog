@@ -15,6 +15,7 @@ import { signInWithProviderCallbackSchema } from "@/schema/auth";
 import {
   ChangeEmailReq,
   ChangePasswordReq,
+  EditUserReq,
   EnableMFAReq,
   SetupMFAReq,
 } from "@/schema/user";
@@ -453,4 +454,13 @@ export async function disconnectOauthProvider(
   return res
     .status(StatusCodes.OK)
     .json({ message: `Disconnect to ${provider} success.` });
+}
+
+export async function editProfile(
+  req: Request<{}, {}, EditUserReq["body"]>,
+  res: Response
+) {
+  const { id } = req.user!;
+  await editUserById(id, req.body);
+  return res.status(StatusCodes.OK).json({ message: "Update user success." });
 }

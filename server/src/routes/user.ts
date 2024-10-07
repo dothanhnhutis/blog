@@ -15,25 +15,24 @@ import {
   sendVerifyEmail,
   setupMFA,
   signOut,
+  editProfile,
 } from "@/controllers/current-user";
 import { authMiddleware } from "@/middleware/requiredAuth";
 import validateResource from "@/middleware/validateResource";
 import {
   changeEmailSchema,
   changePasswordSchema,
+  editUserSchema,
   enableMFASchema,
   sendChangeEmailSchema,
   setupMFASchema,
 } from "@/schema/user";
 import {
   rateLimitSendChangeEmail,
-  rateLimitRecover,
   rateLimitUserId,
 } from "@/middleware/rateLimit";
-import { readUserById } from "@/controllers/user";
+import { createUser, readUserById, updateUserById } from "@/controllers/user";
 import checkPermission from "@/middleware/checkPermission";
-// import { sendVerificationCode } from "@/controllers/auth";
-import { sendVerificationEmailSchema } from "@/schema/auth";
 
 const router: Router = express.Router();
 function userRouter(): Router {
@@ -55,12 +54,18 @@ function userRouter(): Router {
   router.get("/users/sessions", authMiddleware(), readAllSession);
   router.get(
     "/users/:id",
-    authMiddleware(),
-    checkPermission(["ADMIN"]),
+    authMiddleware({ emailVerified: false }),
+    checkPermission(["SUPER_ADMIN", "ADMIN"]),
     readUserById
   );
 
-  router.post("/users/disactivate", authMiddleware(), disactivate);
+  router.post(
+    "/users",
+    authMiddleware(),
+    validateResource(setupMFASchema),
+    checkPermission(["SUPER_ADMIN", "ADMIN"]),
+    createUser
+  );
   router.post(
     "/users/mfa/setup",
     authMiddleware(),
@@ -72,13 +77,6 @@ function userRouter(): Router {
     authMiddleware(),
     validateResource(enableMFASchema),
     enableMFAAccount
-  );
-  router.post("/users/mfa/disable", authMiddleware(), disableMFAAccount);
-  router.post(
-    "/users/password",
-    authMiddleware(),
-    validateResource(changePasswordSchema),
-    changePassword
   );
   router.post(
     "/users/verify-email/send",
@@ -93,11 +91,32 @@ function userRouter(): Router {
     validateResource(sendChangeEmailSchema),
     sendChangeEmail
   );
-  router.post(
+
+  router.patch(
+    "/users/password",
+    authMiddleware(),
+    validateResource(changePasswordSchema),
+    changePassword
+  );
+  router.patch(
     "/users/change-email/otp",
     authMiddleware({ emailVerified: true }),
     validateResource(changeEmailSchema),
     changeEmail
+  );
+  router.put(
+    "/users/:userId",
+    authMiddleware({ emailVerified: true }),
+    checkPermission(["SUPER_ADMIN", "ADMIN"]),
+    validateResource(editUserSchema),
+    updateUserById
+  );
+
+  router.put(
+    "/users",
+    authMiddleware({ emailVerified: true }),
+    validateResource(editUserSchema),
+    editProfile
   );
 
   router.delete(
@@ -105,7 +124,8 @@ function userRouter(): Router {
     authMiddleware(),
     disconnectOauthProvider
   );
-
+  router.delete("/users/mfa/disable", authMiddleware(), disableMFAAccount);
+  router.delete("/users/disactivate", authMiddleware(), disactivate);
   router.delete("/users/sessions/:sessionId", authMiddleware(), removeSession);
   router.delete("/users/signout", signOut);
 

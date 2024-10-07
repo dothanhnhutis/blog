@@ -143,8 +143,13 @@ export const changeEmailSchema = z.object({
 });
 
 const editUserBody = z.object({
-  photo: mediaSchema,
-  coverPhoto: mediaSchema,
+  picture: z
+    .string({
+      required_error: "Picture is required",
+      invalid_type_error: "Picture must be string",
+    })
+    .min(1, "Picture can't be empty")
+    .nullable(),
   firstName: z
     .string({
       required_error: "First name is required",
@@ -157,38 +162,16 @@ const editUserBody = z.object({
       invalid_type_error: "Last name must be string",
     })
     .min(1, "Last name can't be empty"),
-  birthDate: z
+  phoneNumber: z
     .string({
-      required_error: "birthDate is required",
-      invalid_type_error: "birthDate must be string",
+      required_error: "phone is required",
+      invalid_type_error: "phone must be string",
     })
-    .date("invalid date"),
-  bio: z
-    .string({
-      required_error: "bio is required",
-      invalid_type_error: "bio must be string",
-    })
-    .max(256, "Must be 256 or fewer characters long"),
-  urls: z.array(
-    z.string({
-      invalid_type_error: "id item must be string",
-    }),
-    {
-      invalid_type_error: "id must be array",
-    }
-  ),
-  phone: z.string({
-    required_error: "phone is required",
-    invalid_type_error: "phone must be string",
-  }),
-  address: z.string({
-    required_error: "address is required",
-    invalid_type_error: "address must be string",
-  }),
+    .length(10, "Invalid phone number. Expect 10 numbers"),
 });
 
 export const createUserSchema = z.object({
-  body: editUserBody.extend({
+  body: editUserBody.partial({ picture: true, phoneNumber: true }).extend({
     email: z
       .string({
         required_error: "Email is required",
@@ -206,7 +189,52 @@ export const createUserSchema = z.object({
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]*$/,
         "Password must include: letters, numbers and special characters"
       ),
+    role: z.enum(["ADMIN", "BUSINESS_PARTNER", "CUSTOMER"]),
   }),
+});
+
+export const editUserSchema = z.object({
+  params: z
+    .object({
+      userId: z.string(),
+    })
+    .strip(),
+  body: createUserSchema.shape.body
+    .strip()
+    .extend({
+      status: z.enum(["ACTIVE", "SUSPENDED", "DISABLED"]),
+    })
+    .partial(),
+});
+
+export const orderByEnum = z.enum(["asc", "desc"]);
+
+export const filterUserSchema = z.object({
+  body: z
+    .object({
+      id: z.array(z.string({})).nonempty(),
+      email: z.array(z.string({}).email()).nonempty(),
+      fullName: z.string({}),
+      role: z
+        .array(z.enum(["ADMIN", "BUSINESS_PARTNER", "CUSTOMER"]))
+        .nonempty(),
+      status: z.array(z.enum(["ACTIVE", "SUSPENDED", "DISABLED"])).nonempty(),
+      createRange: z.array(z.date()).length(2, ""),
+      order_by: z.record(
+        z.enum([
+          "firstName",
+          "lastName",
+          "email",
+          "emailVerified",
+          "createdAt",
+          "role",
+          "status",
+        ]),
+        orderByEnum
+      ),
+    })
+    .strip()
+    .partial(),
 });
 
 export type SetupMFAReq = z.infer<typeof setupMFASchema>;
@@ -214,6 +242,9 @@ export type EnableMFAReq = z.infer<typeof enableMFASchema>;
 export type ChangePasswordReq = z.infer<typeof changePasswordSchema>;
 export type SendChangeEmailReq = z.infer<typeof sendChangeEmailSchema>;
 export type ChangeEmailReq = z.infer<typeof changeEmailSchema>;
+export type EditUserReq = z.infer<typeof editUserSchema>;
+export type CreateUserReq = z.infer<typeof createUserSchema>;
+export type FilterUserReq = z.infer<typeof filterUserSchema>;
 
 type Role = "SUPER_ADMIN" | "ADMIN" | "BUSINESS_PARTNER" | "CUSTOMER";
 type UserStatus = "ACTIVE" | "SUSPENDED" | "DISABLED";
