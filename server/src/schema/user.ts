@@ -142,18 +142,6 @@ export const changeEmailSchema = z.object({
     .strict(),
 });
 
-export const disconnectOauthProviderSchema = z.object({
-  body: z
-    .object({
-      provider: z.enum(["google"]),
-      providerId: z.string({
-        invalid_type_error: "ProviderId must be string",
-        required_error: "ProviderId must be required",
-      }),
-    })
-    .strict(),
-});
-
 const editUserBody = z.object({
   photo: mediaSchema,
   coverPhoto: mediaSchema,
@@ -199,10 +187,6 @@ const editUserBody = z.object({
   }),
 });
 
-export const editProfileSchema = z.object({
-  body: editUserBody.partial().strip(),
-});
-
 export const createUserSchema = z.object({
   body: editUserBody.extend({
     email: z
@@ -230,10 +214,6 @@ export type EnableMFAReq = z.infer<typeof enableMFASchema>;
 export type ChangePasswordReq = z.infer<typeof changePasswordSchema>;
 export type SendChangeEmailReq = z.infer<typeof sendChangeEmailSchema>;
 export type ChangeEmailReq = z.infer<typeof changeEmailSchema>;
-export type DisconnectOauthProviderReq = z.infer<
-  typeof disconnectOauthProviderSchema
->;
-export type editProfileReq = z.infer<typeof editProfileSchema>;
 
 type Role = "SUPER_ADMIN" | "ADMIN" | "BUSINESS_PARTNER" | "CUSTOMER";
 type UserStatus = "ACTIVE" | "SUSPENDED" | "DISABLED";
@@ -241,21 +221,22 @@ export type User = {
   id: string;
   email: string | null;
   emailVerified: boolean;
-  password: string | null;
   role: Role;
   status: UserStatus;
+  password: string | null;
   firstName: string;
   lastName: string;
-  phoneNumber: string | null;
   picture: string | null;
+  phoneNumber: string;
   mfa: {
     secretKey: string;
     lastAccess: Date;
     backupCodes: string[];
     backupCodesUsed: string[];
+    createdAt: Date;
+    updatedAt: Date;
   } | null;
   oauthProviders: {
-    id: string;
     provider: string;
     providerId: string;
   }[];

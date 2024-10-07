@@ -16,7 +16,14 @@ declare global {
 const deserializeUser: Middleware = async (req, res, next) => {
   if (!req.sessionData || !req.sessionKey) return next();
 
-  req.user = await getUserById(req.sessionData.userId);
+  req.user = await getUserById(req.sessionData.userId, {
+    oauthProviders: {
+      select: {
+        provider: true,
+        providerId: true,
+      },
+    },
+  });
 
   if (req.user) {
     const newSession = await sessionLastAccess(req.user.id, req.sessionData.id);

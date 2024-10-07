@@ -2,13 +2,12 @@ import express, { type Router } from "express";
 import {
   changeEmail,
   changePassword,
-  connectOauthProvider,
-  connectOauthProviderCallback,
   currentUser,
   disableMFAAccount,
   disactivate,
+  connectOauthProvider,
+  connectOauthProviderCallback,
   disconnectOauthProvider,
-  editProfile,
   enableMFAAccount,
   readAllSession,
   removeSession,
@@ -22,8 +21,6 @@ import validateResource from "@/middleware/validateResource";
 import {
   changeEmailSchema,
   changePasswordSchema,
-  disconnectOauthProviderSchema,
-  editProfileSchema,
   enableMFASchema,
   sendChangeEmailSchema,
   setupMFASchema,
@@ -41,12 +38,12 @@ import { sendVerificationEmailSchema } from "@/schema/auth";
 const router: Router = express.Router();
 function userRouter(): Router {
   router.get(
-    "/users/connect/:provider",
+    "/users/connect/:provider(google|facebook)",
     authMiddleware(),
     connectOauthProvider
   );
   router.get(
-    "/users/connect/:provider/callback",
+    "/users/connect/:provider(google|facebook)/callback",
     authMiddleware(),
     connectOauthProviderCallback
   );
@@ -103,18 +100,10 @@ function userRouter(): Router {
     changeEmail
   );
 
-  router.post(
-    "/users/disconnect",
+  router.delete(
+    "/users/disconnect/:provider(google|facebook)",
     authMiddleware(),
-    validateResource(disconnectOauthProviderSchema),
     disconnectOauthProvider
-  );
-
-  router.patch(
-    "/users",
-    authMiddleware(),
-    validateResource(editProfileSchema),
-    editProfile
   );
 
   router.delete("/users/sessions/:sessionId", authMiddleware(), removeSession);

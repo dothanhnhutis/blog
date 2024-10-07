@@ -1,8 +1,8 @@
 import prisma from "@/utils/db";
+import { UserProfile } from "@/utils/oauth";
 import { Prisma } from "@prisma/client";
 
 const oauthSelectDefault: Prisma.OauthProviderSelect = {
-  id: true,
   user: {
     select: {
       id: true,
@@ -10,16 +10,17 @@ const oauthSelectDefault: Prisma.OauthProviderSelect = {
     },
   },
 };
+
 // CREATE
-export async function insertGoogleLink(
-  providerId: string,
+export async function createProvider(
   userId: string,
+  info: UserProfile,
   select?: Prisma.OauthProviderSelect
 ) {
   return await prisma.oauthProvider.create({
     data: {
-      provider: "google",
-      providerId,
+      provider: info.provider,
+      providerId: info.providerId,
       user: {
         connect: {
           id: userId,
@@ -32,6 +33,7 @@ export async function insertGoogleLink(
     }),
   });
 }
+
 // READ
 export async function getProvider(
   providerId: string,
@@ -52,9 +54,9 @@ export async function getProvider(
   });
 }
 // DELETE
-export async function deleteOauth(
-  providerId: string,
+export async function deleteProvider(
   provider: string,
+  providerId: string,
   select?: Prisma.OauthProviderSelect
 ) {
   return await prisma.oauthProvider.delete({

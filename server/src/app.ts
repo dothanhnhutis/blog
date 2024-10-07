@@ -16,6 +16,7 @@ import { appRoutes } from "@/routes";
 import { CustomError, IErrorResponse, NotFoundError } from "./error-handler";
 import configs from "./configs";
 import deserializeUser from "./middleware/deserializeUser";
+import deserializeCookie from "./middleware/deserializeCookie";
 
 const app: Express = express();
 
@@ -33,6 +34,7 @@ app.use(
 app.use(compression());
 app.use(express.json({ limit: "200mb" }));
 app.use(express.urlencoded({ extended: true, limit: "200mb" }));
+app.use(deserializeCookie);
 app.use(deserializeUser);
 
 appRoutes(app);

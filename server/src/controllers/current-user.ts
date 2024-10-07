@@ -11,30 +11,27 @@ import {
   deleteSessionByKey,
   getAllSession,
 } from "@/redis/session";
+import { signInWithProviderCallbackSchema } from "@/schema/auth";
 import {
   ChangeEmailReq,
   ChangePasswordReq,
-  DisconnectOauthProviderReq,
   EnableMFAReq,
   SetupMFAReq,
-  editProfileReq,
 } from "@/schema/user";
 import { getMFAByUserId } from "@/services/mfa";
-import { insertGoogleLink, deleteOauth } from "@/services/oauth";
+import { createProvider, deleteProvider } from "@/services/oauth";
 import {
   disableMFA,
   editUserById,
   enableMFA,
   getUserByEmail,
   getUserById,
-  UpdateUserByIdInput,
 } from "@/services/user";
 import { compareData, generateOTP, hashData, randId } from "@/utils/helper";
-import { uploadImageCloudinary } from "@/utils/image";
 import { signJWT } from "@/utils/jwt";
 import { generateMFA, TOTPType, validateMFA } from "@/utils/mfa";
 import { emaiEnum, sendMail } from "@/utils/nodemailer";
-import { generateGoogleAuthUrl, getGoogleUserProfile } from "@/utils/oauth";
+import { generateUrlOauth2, getUserProfile } from "@/utils/oauth";
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import qrcode from "qrcode";
@@ -393,62 +390,56 @@ export async function changeEmail(
 }
 
 export async function connectOauthProvider(
-  req: Request<{ provider: "google" }>,
+  req: Request<{ provider: "google" | "facebook" }>,
+  res: Response
+) {
+  const { provider } = req.params;
+  const state = await randId();
+  const url = generateUrlOauth2(provider, {
+    state,
+    redirect_uri: `${configs.SERVER_URL}/api/v1/users/connect/${provider}/callback`,
+  });
+  await setDataInSecondCache(`oauth2:${state}`, "connect", 60 * 5);
+
+  return res.redirect(url);
+}
+
+const CONNECT_ERROR_REDIRECT = `${configs.CLIENT_URL}/security/error`;
+export async function connectOauthProviderCallback(
+  req: Request<{ provider: "google" | "facebook" }>,
   res: Response
 ) {
   const { id } = req.user!;
   const { provider } = req.params;
-  const url = generateGoogleAuthUrl({
+  const { success, data } =
+    signInWithProviderCallbackSchema.shape.query.safeParse(req.query);
+
+  if (!success) return res.redirect(CONNECT_ERROR_REDIRECT);
+
+  if ("error" in data) return res.redirect(CONNECT_ERROR_REDIRECT);
+
+  const state = await getDataCache(`oauth2:${data.state}`);
+
+  if (!state || state != "connect") return res.redirect(CONNECT_ERROR_REDIRECT);
+
+  console.log(state);
+  const userInfo = await getUserProfile(provider, data.code, {
     redirect_uri: `${configs.SERVER_URL}/api/v1/users/connect/${provider}/callback`,
-    state: id,
   });
-  return res.redirect(url);
-}
 
-export async function connectOauthProviderCallback(
-  req: Request<
-    { provider: "google" },
-    {},
-    {},
-    {
-      code?: string | string[] | undefined;
-      error?: string | string[] | undefined;
-      state?: string | string[] | undefined;
-    }
-  >,
-  res: Response
-) {
-  const { provider } = req.params;
-  const { code, error, state } = req.query;
-  console.log(code, error, state);
-  if (
-    error ||
-    !code ||
-    typeof code == "object" ||
-    !state ||
-    typeof state == "object"
-  )
-    throw new BadRequestError("fail connect");
-
-  const userInfo = await getGoogleUserProfile({
-    code,
-    // redirect_uri: `${configs.SERVER_URL}/api/v1/users/connect/${provider}/callback`,
-  });
-  await insertGoogleLink(userInfo.id, state);
+  await createProvider(id, userInfo);
   return res.status(StatusCodes.OK).json({ message: "oke" });
 }
 
 export async function disconnectOauthProvider(
-  req: Request<{}, {}, DisconnectOauthProviderReq["body"]>,
+  req: Request<{ provider: "google" | "facebook" }>,
   res: Response
 ) {
   const { oauthProviders, password } = req.user!;
-  const { provider, providerId } = req.body;
-  if (
-    oauthProviders.filter(
-      (o) => o.provider == provider && o.providerId == providerId
-    ).length == 0
-  )
+  const { provider } = req.params;
+  const oauthProvider = oauthProviders.find((o) => o.provider == provider);
+
+  if (!oauthProvider)
     throw new BadRequestError(`Unable to disconnect ${provider} provider`);
   if (
     oauthProviders.filter((o) => o.provider != provider).length == 0 &&
@@ -458,45 +449,8 @@ export async function disconnectOauthProvider(
       `Please create a password before disconnecting from the ${provider} provider.`
     );
 
-  await deleteOauth(providerId, provider);
+  await deleteProvider(oauthProvider.provider, oauthProvider.providerId);
   return res
     .status(StatusCodes.OK)
     .json({ message: `Disconnect to ${provider} success.` });
-}
-
-export async function editProfile(
-  req: Request<{}, {}, editProfileReq["body"]>,
-  res: Response
-) {
-  const { id } = req.user!;
-  const { photo, coverPhoto, ...props } = req.body;
-  const input: UpdateUserByIdInput = props;
-
-  if (photo) {
-    if (photo.type == "base64") {
-      const { secure_url } = await uploadImageCloudinary(photo.data, {
-        transformation: [{ width: 640, height: 640, crop: "scale" }],
-        tags: ["avatar", id],
-      });
-      input.photo = secure_url;
-    } else {
-      input.photo = photo.data;
-    }
-  }
-
-  if (coverPhoto) {
-    if (coverPhoto.type == "base64") {
-      const { secure_url } = await uploadImageCloudinary(coverPhoto.data, {
-        transformation: [{ width: 640, height: 640, crop: "scale" }],
-        tags: ["avatar", id],
-      });
-      input.coverPhoto = secure_url;
-    } else {
-      input.coverPhoto = coverPhoto.data;
-    }
-  }
-
-  await editUserById(id, input);
-
-  return res.status(StatusCodes.OK).json({ message: "Update profile success" });
 }

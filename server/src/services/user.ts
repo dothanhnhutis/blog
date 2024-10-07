@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { hashData, randId } from "@/utils/helper";
 import { SignUpReq } from "@/schema/auth";
 import { User } from "@/schema/user";
-import { InsertUserWithProvider } from "@/utils/oauth";
+import { UserProfile } from "@/utils/oauth";
 import { signJWT } from "@/utils/jwt";
 import configs from "@/configs";
 import { emaiEnum, sendMail } from "@/utils/nodemailer";
@@ -12,24 +12,25 @@ export const userSelectDefault: Prisma.UserSelect = {
   id: true,
   email: true,
   emailVerified: true,
-  password: true,
   role: true,
   status: true,
+  password: true,
   firstName: true,
   lastName: true,
-  phoneNumber: true,
   picture: true,
+  phoneNumber: true,
   mfa: {
     select: {
-      secretKey: true,
-      lastAccess: true,
       backupCodes: true,
       backupCodesUsed: true,
+      lastAccess: true,
+      secretKey: true,
+      createdAt: true,
+      updatedAt: true,
     },
   },
   oauthProviders: {
     select: {
-      id: true,
       provider: true,
       providerId: true,
     },
@@ -116,7 +117,7 @@ export async function getUserByProvider(
   providerId: string,
   select?: Prisma.UserSelect
 ) {
-  const info = await prisma.oauthProvider.findUnique({
+  const oauth = await prisma.oauthProvider.findUnique({
     where: {
       provider_providerId: {
         provider,
@@ -124,10 +125,10 @@ export async function getUserByProvider(
       },
     },
   });
-  if (!info) return null;
+  if (!oauth) return null;
   return await prisma.user.findUnique({
     where: {
-      id: info.userId,
+      id: oauth.userId,
     },
     select: Prisma.validator<Prisma.UserSelect>()({
       ...userSelectDefault,
@@ -195,12 +196,13 @@ export async function insertUserWithPassword(
 }
 
 export async function insertUserWithProvider(
-  { provider, providerId, ...info }: InsertUserWithProvider,
+  info: UserProfile,
   select?: Prisma.UserSelect
 ) {
+  const { provider, providerId, ...rest } = info;
   const data: Prisma.UserCreateInput = {
     emailVerified: true,
-    ...info,
+    ...rest,
     oauthProviders: {
       create: {
         provider,
@@ -217,10 +219,8 @@ export async function insertUserWithProvider(
     }),
   });
 }
-
 // Update
 export type UpdateUserByIdInput = {
-  twoFAEnabled?: boolean | undefined;
   password?: string | null;
   emailVerified?: boolean | undefined;
   emailVerificationToken?: string | null;
@@ -231,12 +231,10 @@ export type UpdateUserByIdInput = {
   role?: User["role"] | undefined;
   reActiveExpires?: Date | null;
   reActiveToken?: string | null;
-  photo?: string | null;
-  coverPhoto?: string | null;
+  picture?: string | null;
   firstName?: string | undefined;
   lastName?: string | undefined;
-  phone?: string | null;
-  address?: string | null;
+  phoneNumber?: string;
   email?: string | undefined;
 };
 

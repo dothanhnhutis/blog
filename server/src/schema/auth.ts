@@ -1,4 +1,3 @@
-import { error } from "console";
 import z from "zod";
 
 export const signinSchema = z.object({
@@ -133,19 +132,39 @@ export const sendReActivateAccountSchema = z.object({
     .strict(),
 });
 
-export const signInWithGoogleCallBackQuery = z.union([
-  z.object({
-    state: z.string(),
-    error: z.string(),
-  }),
-  z.object({
-    state: z.string(),
-    code: z.string(),
-    scope: z.string(),
-    authuser: z.string(),
-    prompt: z.string(),
-  }),
-]);
+export const signInWithProviderCallbackSchema = z.object({
+  query: z.union([
+    z
+      .object({
+        state: z.string(),
+        code: z.string(),
+        scope: z.string(),
+        authuser: z.string(),
+        prompt: z.string(),
+      })
+      .strip(),
+    z
+      .object({
+        error: z.string(),
+        state: z.string(),
+      })
+      .strip(),
+    z
+      .object({
+        state: z.string(),
+        code: z.string(),
+      })
+      .strip(),
+    z
+      .object({
+        state: z.string(),
+        error_reason: z.string(),
+        error: z.string(),
+        error_description: z.string(),
+      })
+      .strip(),
+  ]),
+});
 
 export type SignInReq = z.infer<typeof signinSchema>;
 export type SignUpReq = z.infer<typeof signupSchema>;
@@ -156,4 +175,8 @@ export type RecoverAccountReq = z.infer<typeof recoverAccountSchema>;
 export type ResetPasswordReq = z.infer<typeof resetPasswordSchema>;
 export type SendReActivateAccountReq = z.infer<
   typeof sendReActivateAccountSchema
+>;
+
+export type SignInWithProviderCallbackReq = z.infer<
+  typeof signInWithProviderCallbackSchema
 >;

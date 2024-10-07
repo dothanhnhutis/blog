@@ -7,8 +7,8 @@ import {
   resetPassword,
   sendReactivateAccount,
   signIn,
-  signInWithGoogle,
-  signInWithGoogleCallBack,
+  signInWithProviderCallBack,
+  signInWithProvider,
   signUp,
   verifyEmail,
 } from "@/controllers/auth";
@@ -27,8 +27,12 @@ import {
 
 const router: Router = express.Router();
 function authRouter(): Router {
-  router.get("/auth/google", signInWithGoogle);
-  router.get("/auth/google/callback", signInWithGoogleCallBack);
+  router.get(
+    "/auth/:provider(google|facebook)/callback",
+    signInWithProviderCallBack
+  );
+  router.get("/auth/:provider(google|facebook)", signInWithProvider);
+
   router.get("/auth/confirm-email/:token", verifyEmail);
   router.get("/auth/session/:token", getSession);
   router.get("/auth/reactivate/:token", reActivateAccount);

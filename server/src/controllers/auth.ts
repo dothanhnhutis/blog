@@ -1,19 +1,14 @@
 import configs from "@/configs";
 import { BadRequestError, NotFoundError } from "@/error-handler";
-import {
-  deteleDataCache,
-  getDataCache,
-  setDataCache,
-  setDataInSecondCache,
-} from "@/redis/cache";
-import { createSession, deleteSessionByKey } from "@/redis/session";
+import { getDataCache, setDataInSecondCache } from "@/redis/cache";
+import { createSession } from "@/redis/session";
 import {
   RecoverAccountReq,
   ResetPasswordReq,
   SendReActivateAccountReq,
   SendVerificationEmailReq,
   SignInReq,
-  signInWithGoogleCallBackQuery,
+  signInWithProviderCallbackSchema,
   SignUpReq,
 } from "@/schema/auth";
 import { updateBackupCodeUsedById } from "@/services/mfa";
@@ -22,8 +17,8 @@ import {
   getUserByEmail,
   getUserByProvider,
   getUserByToken,
-  insertUserWithProvider,
   insertUserWithPassword,
+  insertUserWithProvider,
 } from "@/services/user";
 import {
   compareData,
@@ -35,10 +30,9 @@ import {
 import { signJWT, verifyJWT } from "@/utils/jwt";
 import { validateMFA } from "@/utils/mfa";
 import { emaiEnum, sendMail } from "@/utils/nodemailer";
-import { generateGoogleAuthUrl, getGoogleUserProfile } from "@/utils/oauth";
+import { generateUrlOauth2, getUserProfile } from "@/utils/oauth";
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { z } from "zod";
 
 export async function sendVerificationEmail(
   req: Request<{}, {}, SendVerificationEmailReq["body"]>,
@@ -114,10 +108,7 @@ export async function recoverAccount(
   res: Response
 ) {
   const { email } = req.body;
-  const existingUser = await getUserByEmail(email, {
-    passwordResetToken: true,
-    passwordResetExpires: true,
-  });
+  const existingUser = await getUserByEmail(email);
   if (!existingUser) throw new BadRequestError("Invalid email");
 
   let randomCharacters = existingUser.passwordResetToken;
@@ -327,73 +318,67 @@ export async function reActivateAccount(
   });
 }
 
-export async function signInWithGoogle(
-  req: Request<{}, {}, {}, { redir?: string }>,
+export async function signInWithProvider(
+  req: Request<{ provider: "google" | "facebook" }>,
   res: Response
 ) {
+  const { provider } = req.params;
   const state = await randId();
-  const url = generateGoogleAuthUrl({
-    access_type: "offline",
-    scope: [
-      "https://www.googleapis.com/auth/userinfo.email",
-      "https://www.googleapis.com/auth/userinfo.profile",
-      "openid",
-    ],
+  const url = generateUrlOauth2(provider, {
     state,
-    prompt: "consent",
   });
-
-  await setDataInSecondCache(`oauth:${state}`, state, 60 * 5);
-
+  await setDataInSecondCache(`oauth2:${state}`, "oauth", 60 * 5);
   return res.redirect(url);
 }
 
 const ERROR_REDIRECT = `${configs.CLIENT_URL}/auth/error`;
-const SUCCESS_REDIRECT = `${configs.CLIENT_URL}/success/signin`;
+const SUCCESS_REDIRECT = `${configs.CLIENT_URL}/account/profile`;
 
-export async function signInWithGoogleCallBack(req: Request, res: Response) {
-  const { success, data } = signInWithGoogleCallBackQuery.safeParse(req.query);
+export async function signInWithProviderCallBack(
+  req: Request<{ provider: "google" | "facebook" }>,
+  res: Response
+) {
+  const { provider } = req.params;
+  const { success, data } =
+    signInWithProviderCallbackSchema.shape.query.safeParse(req.query);
+
   if (!success) return res.redirect(ERROR_REDIRECT);
 
-  const query: z.infer<typeof signInWithGoogleCallBackQuery> = data;
+  if ("error" in data) return res.redirect(ERROR_REDIRECT);
 
-  if ("error" in query) return res.redirect(ERROR_REDIRECT);
+  const state = await getDataCache(`oauth2:${data.state}`);
 
-  const state = getDataCache(`oauth:${query.state}`);
-  // Invalid state parameter. Possible CSRF attack.
-  if (!state) return res.redirect(ERROR_REDIRECT);
+  if (!state || state != "oauth") return res.redirect(ERROR_REDIRECT);
 
-  const userInfo = await getGoogleUserProfile({ code: query.code });
-  let user = await getUserByProvider("google", userInfo.id);
+  const userInfo = await getUserProfile(provider, data.code);
+  let user = await getUserByProvider(provider, userInfo.providerId);
+
   if (!user) {
     const existAccount = await getUserByEmail(userInfo.email);
-
     if (existAccount) {
       if (existAccount.password) {
         return res
-          .cookie("oauth_error", "registered", {
+          .cookie("oauth2_error", "registered_with_password", {
             httpOnly: true,
             secure: configs.NODE_ENV == "production",
           })
           .redirect(`${configs.CLIENT_URL}/login`);
       } else {
-        // facebook provider
         return res
-          .cookie("oauth_error", "fb_oauth", {
-            httpOnly: true,
-            secure: configs.NODE_ENV == "production",
-          })
+          .cookie(
+            "oauth2_error",
+            provider == "facebook"
+              ? "registered_with_google"
+              : "registered_with_facebook",
+            {
+              httpOnly: true,
+              secure: configs.NODE_ENV == "production",
+            }
+          )
           .redirect(`${configs.CLIENT_URL}/login`);
       }
     }
-    user = await insertUserWithProvider({
-      provider: "google",
-      providerId: userInfo.id,
-      email: userInfo.email,
-      firstName: userInfo.given_name,
-      lastName: userInfo.family_name,
-      picture: userInfo.picture,
-    });
+    user = await insertUserWithProvider(userInfo);
   }
 
   if (user.status == "DISABLED") {
@@ -401,7 +386,7 @@ export async function signInWithGoogleCallBack(req: Request, res: Response) {
     //   "Your account has been locked please contact the administrator"
     // );
     return res
-      .cookie("oauth_error", "disabled", {
+      .cookie("oauth2_error", "disable", {
         httpOnly: true,
         secure: configs.NODE_ENV == "production",
       })
@@ -411,7 +396,7 @@ export async function signInWithGoogleCallBack(req: Request, res: Response) {
   if (user.status == "SUSPENDED") {
     // throw new BadRequestError("Your account has been suspended");
     return res
-      .cookie("oauth_error", "suspended", {
+      .cookie("oauth2_error", "suspended", {
         httpOnly: true,
         secure: configs.NODE_ENV == "production",
       })
