@@ -8,14 +8,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
+enum UserRole {
   SUPER_ADMIN
   ADMIN
   BUSINESS_PARTNER
   CUSTOMER
 }
 
-enum Status {
+enum UserStatus {
   ACTIVE
   SUSPENDED
   DISABLED
@@ -30,14 +30,14 @@ model User {
   password                 String?
   passwordResetToken       String?         @unique
   passwordResetExpires     DateTime? //4h
-  role                     Role            @default(CUSTOMER)
-  status                   Status          @default(ACTIVE)
+  role                     UserRole        @default(CUSTOMER)
+  status                   UserStatus      @default(ACTIVE)
   reActiveToken            String?         @unique
   reActiveExpires          DateTime? //4h
   firstName                String
   lastName                 String
-  phoneNumber              String?
   picture                  String?
+  phoneNumber              String          @default("")
   createdAt                DateTime        @default(now())
   updatedAt                DateTime        @updatedAt
   oauthProviders           OauthProvider[]
@@ -47,7 +47,6 @@ model User {
 }
 
 model OauthProvider {
-  id         String   @id @default(uuid())
   providerId String
   provider   String
   userId     String
@@ -55,8 +54,7 @@ model OauthProvider {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@unique([provider, providerId])
-  @@index([userId, provider, providerId])
+  @@id([provider, providerId])
 }
 
 model MFA {
@@ -70,5 +68,5 @@ model MFA {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId])
-  @@index([userId, backupCodes, backupCodesUsed])
+  @@index([backupCodes, backupCodesUsed])
 }
