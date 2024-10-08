@@ -45,7 +45,7 @@ function userRouter(): Router {
   router.get(
     "/users/_search",
     authMiddleware(),
-    // validateResource(filterUserSchema),
+    validateResource(filterUserSchema),
     filterUser
   );
   router.get(

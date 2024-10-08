@@ -162,17 +162,19 @@ export type SearchUserProps = {
 
   limit?: number;
   page?: number;
-  orderBy?: Record<
-    | "email"
-    | "firstName"
-    | "lastName"
-    | "role"
-    | "emailVerified"
-    | "status"
-    | "createdAt"
-    | "updatedAt",
-    "asc" | "desc"
-  >;
+  orderBy?: Partial<
+    Record<
+      | "email"
+      | "firstName"
+      | "lastName"
+      | "role"
+      | "emailVerified"
+      | "status"
+      | "createdAt"
+      | "updatedAt",
+      "asc" | "desc"
+    >
+  >[];
   select?: Prisma.UserSelect;
 };
 export async function searchUser(input: SearchUserProps) {
@@ -234,7 +236,6 @@ export async function searchUser(input: SearchUserProps) {
       };
     }
     if (fullName) {
-      console.log(fullName);
       args.where = {
         ...args.where,
         OR: [

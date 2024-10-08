@@ -70,3 +70,69 @@ model MFA {
   @@id([userId])
   @@index([backupCodes, backupCodesUsed])
 }
+
+model PostTag {
+  id          String        @id @default(uuid())
+  postId      String
+  tagFor      String
+  tagName     String
+  createdAt   DateTime      @default(now())
+  PostWithTag PostWithTag[]
+
+  @@unique([tagFor, tagName])
+  @@index([tagFor, tagName])
+}
+
+model PostCategory {
+  id           String   @id @default(uuid())
+  categoryFor  String
+  categoryName String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  Post         Post[]
+
+  @@unique([categoryFor, categoryName])
+  @@index([categoryFor, categoryName])
+}
+
+model PostWithTag {
+  post    Post    @relation(fields: [postId], references: [id])
+  postTag PostTag @relation(fields: [postTagId], references: [id])
+
+  postId    String
+  postTagId String
+
+  @@id([postId, postTagId])
+}
+
+model Post {
+  id         String             @id @default(uuid())
+  title      String
+  slug       String
+  tags       PostWithTag[]
+  categoryId String
+  category   PostCategory       @relation(fields: [categoryId], references: [id])
+  postMores  PostWithPostMore[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PostWithPostMore {
+  post     Post     @relation(fields: [postId], references: [id])
+  postMore PostMore @relation(fields: [postMoreId], references: [id])
+
+  postId     String
+  postMoreId String
+
+  @@id([postId, postMoreId])
+}
+
+model PostMore {
+  id               String             @id @default(uuid())
+  key              String
+  value            String
+  PostWithPostMore PostWithPostMore[]
+
+  @@index([key])
+}

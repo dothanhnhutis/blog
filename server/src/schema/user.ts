@@ -1,3 +1,4 @@
+import { query } from "express";
 import * as z from "zod";
 
 export const mediaSchema = z.discriminatedUnion(
@@ -209,93 +210,219 @@ export const editUserSchema = z.object({
 
 export const orderByEnum = z.enum(["asc", "desc"]);
 
+export const filterUserBodySchema = z
+  .object({
+    ids: z
+      .array(z.string({ invalid_type_error: "id item must be string" }))
+      .nonempty("ids can not empty"),
+    emails: z
+      .array(z.string({ invalid_type_error: "" }).email("invalid email"))
+      .nonempty("emails can not empty"),
+    email_verified: z.boolean({
+      invalid_type_error: "emailVerified must be boolean",
+    }),
+    fullName: z.string({
+      invalid_type_error: "fullName must be string.",
+    }),
+    roles: z
+      .array(z.enum(["ADMIN", "BUSINESS_PARTNER", "CUSTOMER"]))
+      .nonempty("roles can not empty"),
+    statuses: z
+      .array(z.enum(["ACTIVE", "SUSPENDED", "DISABLED"]))
+      .nonempty("statuses can not empty"),
+    created_range: z
+      .array(
+        z
+          .string({ invalid_type_error: "createRange[item] must be date" })
+          .datetime("createRange[item] invalid datetime")
+      )
+      .length(2, "createRange expect 2 item")
+      .refine((data) => new Date(data[0]) <= new Date(data[1]), {
+        message:
+          "The element at position 0 must be less than or equal to the element at position 1",
+        path: ["create_range"],
+      }),
+    order_by: z
+      .array(
+        z
+          .object({
+            email: z.enum(["asc", "desc"], {
+              message: "orderBy email must be enum 'asc'|'desc'",
+            }),
+            firstName: z.enum(["asc", "desc"], {
+              message: "orderBy firstName must be enum 'asc'|'desc'",
+            }),
+            lastName: z.enum(["asc", "desc"], {
+              message: "orderBy lastName must be enum 'asc'|'desc'",
+            }),
+            role: z.enum(["asc", "desc"], {
+              message: "orderBy role must be enum 'asc'|'desc'",
+            }),
+            emailVerified: z.enum(["asc", "desc"], {
+              message: "orderBy emailVerified must be enum 'asc'|'desc'",
+            }),
+            status: z.enum(["asc", "desc"], {
+              message: "orderBy status must be enum 'asc'|'desc'",
+            }),
+            createdAt: z.enum(["asc", "desc"], {
+              message: "orderBy createdAt must be enum 'asc'|'desc'",
+            }),
+            updatedAt: z.enum(["asc", "desc"], {
+              message: "orderBy updatedAt must be enum 'asc'|'desc'",
+            }),
+          })
+          .strip()
+          .partial()
+          .refine(
+            (data) => {
+              const keys = Object.keys(data);
+              return keys.length === 1;
+            },
+            {
+              message:
+                "Each object must have exactly one key, either 'firstName'|'lastName'|'email'|'role'|'emailVerified'|'status'|'createdAt'|'updatedAt'",
+            }
+          )
+      )
+      .nonempty("order_by can not empty"),
+    limit: z
+      .number({ invalid_type_error: "limit must be number" })
+      .int("limit must be interger")
+      .gte(1, "limit must be greater than 1"),
+    page: z
+      .number({ invalid_type_error: "page must be number" })
+      .int("page must be interger")
+      .gte(1, "page must be greater than 1"),
+  })
+  .strip()
+  .partial();
+export const filterUserQuerySchema = z
+  .object({
+    id: z
+      .union([z.string(), z.array(z.string())])
+      .transform((val) => (Array.isArray(val) ? val : [val])),
+    email: z
+      .union([z.string(), z.array(z.string())])
+      .transform(
+        (val) =>
+          z
+            .array(z.string().email())
+            .safeParse(Array.isArray(val) ? val : [val]).data
+      ),
+    email_verified: z
+      .union([z.string(), z.array(z.string())])
+      .transform(
+        (val) =>
+          z
+            .enum(["0", "1", "true", "false"])
+            .safeParse(Array.isArray(val) ? val.pop() : val).data
+      ),
+    full_name: z
+      .union([z.string(), z.array(z.string())])
+      .transform((val) => (Array.isArray(val) ? val.pop() : val)),
+    role: z
+      .union([z.string(), z.array(z.string())])
+      .transform(
+        (val) =>
+          z
+            .array(z.enum(["ADMIN", "BUSINESS_PARTNER", "CUSTOMER"]))
+            .safeParse(Array.isArray(val) ? val : [val]).data
+      ),
+    status: z
+      .union([z.string(), z.array(z.string())])
+      .transform(
+        (val) =>
+          z
+            .array(z.enum(["ACTIVE", "SUSPENDED", "DISABLED"]))
+            .safeParse(Array.isArray(val) ? val : [val]).data
+      ),
+    created_from: z.union([z.string(), z.array(z.string())]).transform(
+      (val) =>
+        z
+          .string()
+          .datetime()
+          .safeParse(Array.isArray(val) ? val.pop() : val).data
+    ),
+    created_to: z.union([z.string(), z.array(z.string())]).transform(
+      (val) =>
+        z
+          .string()
+          .datetime()
+          .safeParse(Array.isArray(val) ? val.pop() : val).data
+    ),
+    order_by: z.union([z.string(), z.array(z.string())]).transform((val) => {
+      const userOrderByRegex =
+        /^((email|firstName|lastName|role|emailVerified|status|createdAt|updatedAt)_(asc|desc)\,)*?(email|firstName|lastName|role|emailVerified|status|createdAt|updatedAt)_(asc|desc)$/;
+      if (Array.isArray(val)) {
+        return userOrderByRegex.test(val.join(",")) ? val.join(",") : undefined;
+      } else {
+        return userOrderByRegex.test(val) ? val : undefined;
+      }
+    }),
+    limit: z.union([z.string(), z.array(z.string())]).transform(
+      (val) =>
+        z
+          .string()
+          .regex(/^\d+$/)
+          .safeParse(Array.isArray(val) ? val.pop() : val).data
+    ),
+    page: z.union([z.string(), z.array(z.string())]).transform(
+      (val) =>
+        z
+          .string()
+          .regex(/^\d+$/)
+          .safeParse(Array.isArray(val) ? val.pop() : val).data
+    ),
+  })
+  .strip()
+  .partial()
+  .transform((val) => {
+    const result: any = {};
+    if (val.id && val.id.length > 0) {
+      result.ids = val.id;
+    }
+    if (val.email && val.email.length > 0) {
+      result.emails = val.email;
+    }
+    if (val.email_verified) {
+      result.email_verified =
+        val.email_verified == "1" || val.email_verified == "true";
+    }
+    if (val.full_name) {
+      result.fullName = val.full_name;
+    }
+    if (val.status) {
+      result.statuses = val.status;
+    }
+    if (val.role) {
+      result.roles = val.role;
+    }
+    if (
+      val.created_from &&
+      val.created_to &&
+      new Date(val.created_from) <= new Date(val.created_to)
+    ) {
+      result.created_range = [val.created_from, val.created_to];
+    }
+    if (val.order_by) {
+      result.order_by = val.order_by
+        .split(",")
+        .map((o) => ({ [o.split("_")[0]]: o.split("_")[1] }));
+    }
+
+    if (val.limit) {
+      result.limit = parseInt(val.limit);
+    }
+    if (val.page) {
+      result.page = parseInt(val.page);
+    }
+    return result;
+  })
+  .pipe(filterUserBodySchema);
+
 export const filterUserSchema = z.object({
-  body: z
-    .object({
-      ids: z
-        .array(z.string({ invalid_type_error: "id item must be string" }))
-        .nonempty("ids can not empty"),
-      emails: z
-        .array(z.string({ invalid_type_error: "" }).email("invalid email"))
-        .nonempty("emails can not empty"),
-      emailVerified: z.boolean({
-        invalid_type_error: "emailVerified must be boolean",
-      }),
-      fullName: z.string({
-        invalid_type_error: "fullName must be string.",
-      }),
-      roles: z
-        .array(z.enum(["ADMIN", "BUSINESS_PARTNER", "CUSTOMER"]))
-        .nonempty("roles can not empty"),
-      statuses: z
-        .array(z.enum(["ACTIVE", "SUSPENDED", "DISABLED"]))
-        .nonempty("statuses can not empty"),
-      created_range: z
-        .array(
-          z
-            .string({ invalid_type_error: "createRange[item] must be date" })
-            .datetime("createRange[item] invalid datetime")
-        )
-        .length(2, "createRange expect 2 item")
-        .refine((data) => new Date(data[0]) <= new Date(data[1]), {
-          message:
-            "The element at position 0 must be less than or equal to the element at position 1",
-          path: ["create_range"],
-        }),
-      order_by: z
-        .array(
-          z
-            .object({
-              email: z.enum(["asc", "desc"], {
-                message: "orderBy email must be enum 'asc'|'desc'",
-              }),
-              firstName: z.enum(["asc", "desc"], {
-                message: "orderBy firstName must be enum 'asc'|'desc'",
-              }),
-              lastName: z.enum(["asc", "desc"], {
-                message: "orderBy lastName must be enum 'asc'|'desc'",
-              }),
-              role: z.enum(["asc", "desc"], {
-                message: "orderBy role must be enum 'asc'|'desc'",
-              }),
-              emailVerified: z.enum(["asc", "desc"], {
-                message: "orderBy emailVerified must be enum 'asc'|'desc'",
-              }),
-              status: z.enum(["asc", "desc"], {
-                message: "orderBy status must be enum 'asc'|'desc'",
-              }),
-              createdAt: z.enum(["asc", "desc"], {
-                message: "orderBy createdAt must be enum 'asc'|'desc'",
-              }),
-              updatedAt: z.enum(["asc", "desc"], {
-                message: "orderBy updatedAt must be enum 'asc'|'desc'",
-              }),
-            })
-            .strip()
-            .partial()
-            .refine(
-              (data) => {
-                const keys = Object.keys(data);
-                return keys.length === 1;
-              },
-              {
-                message:
-                  "Each object must have exactly one key, either 'firstName'|'lastName'|'email'|'role'|'emailVerified'|'status'|'createdAt'|'updatedAt'",
-              }
-            )
-        )
-        .nonempty("order_by can not empty"),
-      limit: z
-        .number({ invalid_type_error: "limit must be number" })
-        .int("limit must be interger")
-        .gte(1, "limit must be greater than 1"),
-      page: z
-        .number({ invalid_type_error: "page must be number" })
-        .int("page must be interger")
-        .gte(1, "page must be greater than 1"),
-    })
-    .strip()
-    .partial(),
+  query: filterUserQuerySchema,
+  body: filterUserBodySchema,
 });
 
 export type SetupMFAReq = z.infer<typeof setupMFASchema>;
