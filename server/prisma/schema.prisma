@@ -42,6 +42,7 @@ model User {
   updatedAt                DateTime        @updatedAt
   oauthProviders           OauthProvider[]
   mfa                      MFA?
+  Post                     Post[]
 
   @@index([email, emailVerificationToken, passwordResetToken, reActiveToken])
 }
@@ -71,61 +72,42 @@ model MFA {
   @@index([backupCodes, backupCodesUsed])
 }
 
+enum PostForEnum {
+  BLOG
+  PRODUCT
+}
+
+model PostCategory {
+  id           String      @id @default(uuid())
+  categoryFor  PostForEnum
+  categoryName String
+  categorySlug String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  Post         Post[]
+
+  @@unique([categoryFor, categoryName, categorySlug])
+  @@index([categoryFor, categoryName, categorySlug])
+}
+
 model PostTag {
-  id          String        @id @default(uuid())
-  postId      String
-  tagFor      String
+  tagFor      PostForEnum
   tagName     String
   createdAt   DateTime      @default(now())
   PostWithTag PostWithTag[]
 
-  @@unique([tagFor, tagName])
+  @@id([tagFor, tagName])
   @@index([tagFor, tagName])
 }
 
-model PostCategory {
-  id           String   @id @default(uuid())
-  categoryFor  String
-  categoryName String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  Post         Post[]
-
-  @@unique([categoryFor, categoryName])
-  @@index([categoryFor, categoryName])
-}
-
 model PostWithTag {
-  post    Post    @relation(fields: [postId], references: [id])
-  postTag PostTag @relation(fields: [postTagId], references: [id])
+  tagFor  PostForEnum
+  tagName String
+  postId  String
+  tag     PostTag     @relation(fields: [tagFor, tagName], references: [tagFor, tagName])
+  post    Post        @relation(fields: [postId], references: [id])
 
-  postId    String
-  postTagId String
-
-  @@id([postId, postTagId])
-}
-
-model Post {
-  id         String             @id @default(uuid())
-  title      String
-  slug       String
-  tags       PostWithTag[]
-  categoryId String
-  category   PostCategory       @relation(fields: [categoryId], references: [id])
-  postMores  PostWithPostMore[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model PostWithPostMore {
-  post     Post     @relation(fields: [postId], references: [id])
-  postMore PostMore @relation(fields: [postMoreId], references: [id])
-
-  postId     String
-  postMoreId String
-
-  @@id([postId, postMoreId])
+  @@id([tagFor, tagName, postId])
 }
 
 model PostMore {
@@ -135,4 +117,41 @@ model PostMore {
   PostWithPostMore PostWithPostMore[]
 
   @@index([key])
+}
+
+model PostWithPostMore {
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postMore PostMore @relation(fields: [postMoreId], references: [id], onDelete: Cascade)
+
+  postId     String
+  postMoreId String
+
+  @@id([postId, postMoreId])
+}
+
+enum PostStatus {
+  DRAFT
+  DISABLE
+  PUBLISH
+}
+
+model Post {
+  id          String             @id @default(uuid())
+  images      String[]
+  title       String
+  slug        String
+  postFor     PostForEnum
+  categoryId  String
+  category    PostCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  postMores   PostWithPostMore[]
+  tags        PostWithTag[]
+  status      PostStatus
+  content     String
+  createdById String
+  createdBy   User               @relation(fields: [createdById], references: [id])
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@unique([slug, postFor])
+  @@index([postFor, title, slug])
 }

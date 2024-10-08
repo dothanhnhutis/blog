@@ -208,8 +208,6 @@ export const editUserSchema = z.object({
     .partial(),
 });
 
-export const orderByEnum = z.enum(["asc", "desc"]);
-
 export const filterUserBodySchema = z
   .object({
     ids: z
@@ -436,6 +434,7 @@ export type FilterUserReq = z.infer<typeof filterUserSchema>;
 
 type Role = "SUPER_ADMIN" | "ADMIN" | "BUSINESS_PARTNER" | "CUSTOMER";
 type UserStatus = "ACTIVE" | "SUSPENDED" | "DISABLED";
+
 export type User = {
   id: string;
   email: string | null;
