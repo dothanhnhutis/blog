@@ -17,13 +17,15 @@ export async function getCategoryById(id: string) {
 
 export async function getCategoryByName(
   categoryFor: CreateCategoryReq["body"]["categoryFor"],
-  categoryName: string
+  categoryName: string,
+  categorySlug: string
 ) {
   return await prisma.postCategory.findUnique({
     where: {
-      categoryFor_categoryName: {
+      categoryFor_categoryName_categorySlug: {
         categoryFor,
         categoryName,
+        categorySlug,
       },
     },
   });
