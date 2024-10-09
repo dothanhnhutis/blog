@@ -68,33 +68,33 @@ export async function middleware(request: NextRequest) {
     routes.test(nextUrl.pathname)
   );
 
-  if (user) {
-    if (emailVerified) {
-      if (nextUrl.pathname == EMAIL_VERIFY_ROUTE) {
-        return redirect(request, DEFAULT_LOGIN_REDIRECT);
-      }
+  // if (user) {
+  //   if (emailVerified) {
+  //     if (nextUrl.pathname == EMAIL_VERIFY_ROUTE) {
+  //       return redirect(request, DEFAULT_LOGIN_REDIRECT);
+  //     }
 
-      if (
-        isPrivateRoute &&
-        !roleAccessRoutes[user.role].some((routes) =>
-          routes.test(nextUrl.pathname)
-        )
-      ) {
-        return redirect(request, DEFAULT_LOGIN_REDIRECT);
-      }
-    } else {
-      if (isPrivateRoute) {
-        return redirect(request, EMAIL_VERIFY_ROUTE);
-      }
-    }
-    if (authRoutes.test(nextUrl.pathname)) {
-      return redirect(request, DEFAULT_LOGIN_REDIRECT);
-    }
-  } else {
-    if (isPrivateRoute || nextUrl.pathname == EMAIL_VERIFY_ROUTE) {
-      return redirect(request, DEFAULT_LOGOUT_REDIRECT);
-    }
-  }
+  //     if (
+  //       isPrivateRoute &&
+  //       !roleAccessRoutes[user.role].some((routes) =>
+  //         routes.test(nextUrl.pathname)
+  //       )
+  //     ) {
+  //       return redirect(request, DEFAULT_LOGIN_REDIRECT);
+  //     }
+  //   } else {
+  //     if (isPrivateRoute) {
+  //       return redirect(request, EMAIL_VERIFY_ROUTE);
+  //     }
+  //   }
+  //   if (authRoutes.test(nextUrl.pathname)) {
+  //     return redirect(request, DEFAULT_LOGIN_REDIRECT);
+  //   }
+  // } else {
+  //   if (isPrivateRoute || nextUrl.pathname == EMAIL_VERIFY_ROUTE) {
+  //     return redirect(request, DEFAULT_LOGOUT_REDIRECT);
+  //   }
+  // }
   return redirect(request);
 }
 

@@ -22,27 +22,28 @@ enum UserStatus {
 }
 
 model User {
-  id                       String          @id @default(uuid())
-  email                    String?         @unique
-  emailVerified            Boolean         @default(false)
+  id                       String           @id @default(uuid())
+  email                    String?          @unique
+  emailVerified            Boolean          @default(false)
   emailVerificationExpires DateTime? //24h
-  emailVerificationToken   String?         @unique
+  emailVerificationToken   String?          @unique
   password                 String?
-  passwordResetToken       String?         @unique
+  passwordResetToken       String?          @unique
   passwordResetExpires     DateTime? //4h
-  role                     UserRole        @default(CUSTOMER)
-  status                   UserStatus      @default(ACTIVE)
-  reActiveToken            String?         @unique
+  role                     UserRole         @default(CUSTOMER)
+  status                   UserStatus       @default(ACTIVE)
+  reActiveToken            String?          @unique
   reActiveExpires          DateTime? //4h
   firstName                String
   lastName                 String
   picture                  String?
-  phoneNumber              String          @default("")
-  createdAt                DateTime        @default(now())
-  updatedAt                DateTime        @updatedAt
+  phoneNumber              String           @default("")
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
   oauthProviders           OauthProvider[]
   mfa                      MFA?
-  Post                     Post[]
+  articleContent           ArticleContent[]
+  productContent           ProductContent[]
 
   @@index([email, emailVerificationToken, passwordResetToken, reActiveToken])
 }
@@ -72,86 +73,110 @@ model MFA {
   @@index([backupCodes, backupCodesUsed])
 }
 
-enum PostForEnum {
-  BLOG
-  PRODUCT
+model ArticleContentCategory {
+  id             String           @id @default(uuid())
+  categoryName   String
+  categorySlug   String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  articleContent ArticleContent[]
+
+  @@unique([categoryName, categorySlug])
+  @@index([categoryName, categorySlug])
 }
 
-model PostCategory {
-  id           String      @id @default(uuid())
-  categoryFor  PostForEnum
-  categoryName String
-  categorySlug String
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  Post         Post[]
+model ArticleContentTag {
+  tagName               String
+  createdAt             DateTime                @default(now())
+  articleContentWithTag ArticleContentWithTag[]
 
-  @@unique([categoryFor, categoryName, categorySlug])
-  @@index([categoryFor, categoryName, categorySlug])
+  @@id([tagName])
+  @@index([tagName])
 }
 
-model PostTag {
-  tagFor      PostForEnum
-  tagName     String
-  createdAt   DateTime      @default(now())
-  PostWithTag PostWithTag[]
+model ArticleContentWithTag {
+  tagName          String
+  articleContentId String
+  tag              ArticleContentTag @relation(fields: [tagName], references: [tagName])
+  post             ArticleContent    @relation(fields: [articleContentId], references: [id])
 
-  @@id([tagFor, tagName])
-  @@index([tagFor, tagName])
+  @@id([tagName, articleContentId])
 }
 
-model PostWithTag {
-  tagFor  PostForEnum
-  tagName String
-  postId  String
-  tag     PostTag     @relation(fields: [tagFor, tagName], references: [tagFor, tagName])
-  post    Post        @relation(fields: [postId], references: [id])
-
-  @@id([tagFor, tagName, postId])
-}
-
-model PostMore {
-  id               String             @id @default(uuid())
-  key              String
-  value            String
-  PostWithPostMore PostWithPostMore[]
-
-  @@index([key])
-}
-
-model PostWithPostMore {
-  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postMore PostMore @relation(fields: [postMoreId], references: [id], onDelete: Cascade)
-
-  postId     String
-  postMoreId String
-
-  @@id([postId, postMoreId])
-}
-
-enum PostStatus {
+enum ContentStatus {
   DRAFT
   DISABLE
   PUBLISH
 }
 
-model Post {
-  id          String             @id @default(uuid())
-  images      String[]
+model ArticleContent {
+  id          String                  @id @default(uuid())
+  image       String
   title       String
-  slug        String
-  postFor     PostForEnum
+  slug        String                  @unique
   categoryId  String
-  category    PostCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  postMores   PostWithPostMore[]
-  tags        PostWithTag[]
-  status      PostStatus
+  category    ArticleContentCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tags        ArticleContentWithTag[]
+  status      ContentStatus
   content     String
   createdById String
-  createdBy   User               @relation(fields: [createdById], references: [id])
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  publishAt   DateTime
 
-  @@unique([slug, postFor])
-  @@index([postFor, title, slug])
+  createdBy User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([title, slug])
+}
+
+model ProductContentCategory {
+  id             String           @id @default(uuid())
+  categoryName   String
+  categorySlug   String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  productContent ProductContent[]
+
+  @@unique([categoryName, categorySlug])
+  @@index([categoryName, categorySlug])
+}
+
+model ProductContentTag {
+  tagName               String
+  createdAt             DateTime                @default(now())
+  productContentWithTag ProductContentWithTag[]
+
+  @@id([tagName])
+  @@index([tagName])
+}
+
+model ProductContentWithTag {
+  tagName          String
+  productContentId String
+  tag              ProductContentTag @relation(fields: [tagName], references: [tagName])
+  product          ProductContent    @relation(fields: [productContentId], references: [id])
+
+  @@id([tagName, productContentId])
+}
+
+model ProductContent {
+  id          String                  @id @default(uuid())
+  images      String[]
+  title       String
+  slug        String                  @unique
+  status      ContentStatus
+  tags        ProductContentWithTag[]
+  categoryId  String
+  category    ProductContentCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  content     String
+  createdById String
+  createdBy   User                    @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  code        String
+  description String
+  benefits    String[]
+  ingredients String[]
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  @@index([title, slug])
 }

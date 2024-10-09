@@ -1,21 +1,20 @@
 import express, { type Router } from "express";
-import { health } from "@/controllers/health";
 import validateResource from "@/middleware/validateResource";
-import { createCategory } from "@/controllers/category";
-import { createCategorySchema } from "@/schema/category";
 import { authMiddleware } from "@/middleware/requiredAuth";
 import checkPermission from "@/middleware/checkPermission";
+import { createProductCategorySchema } from "@/schema/product-category";
+import { createproductCategory } from "@/controllers/product-category";
 
 const router: Router = express.Router();
-function healthRouter(): Router {
+function productCategoryRouter(): Router {
   router.post(
-    "/categories",
+    "/content/products/categories",
     authMiddleware(),
     checkPermission(["SUPER_ADMIN", "ADMIN"]),
-    validateResource(createCategorySchema),
-    createCategory
+    validateResource(createProductCategorySchema),
+    createproductCategory
   );
   return router;
 }
 
-export default healthRouter();
+export default productCategoryRouter();
