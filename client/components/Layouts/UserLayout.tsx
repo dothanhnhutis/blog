@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Logo } from "../logo";
 import {
   DropdownMenu,
@@ -27,6 +27,7 @@ import Link from "next/link";
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
 import UserSideBar from "./components/user-sidebar";
+import { cn } from "@/lib/utils";
 
 const UserLayout = async ({
   children,
@@ -136,8 +137,8 @@ const UserLayout = async ({
         </div>
       </header>
 
-      <main className="bg-gray-50">
-        <div className="flex relative mx-auto max-w-screen-xl">
+      <main className="bg-white">
+        <div className="flex flex-col md:flex-row relative mx-auto max-w-screen-xl">
           <UserSideBar />
           {children}
         </div>

@@ -10,6 +10,7 @@ import { User } from "@/schemas/user";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { LoaderPinwheelIcon } from "lucide-react";
+import { FaFacebook } from "react-icons/fa6";
 
 const ConnectBtn = ({
   provider,
@@ -81,14 +82,14 @@ const providerList: {
         <div className="p-1 bg-white rounded-full shadow dark:shadow-none">
           <FcGoogle className="size-8" />
         </div>
-        <p>Google</p>
+        <p className="font-medium">Google</p>
       </div>
     ),
   },
   {
     id: 2,
-    label: "Github",
-    provider: "github",
+    label: "Facebook",
+    provider: "facebook",
     icon: (isConnected: boolean) => (
       <div
         className={cn(
@@ -96,8 +97,10 @@ const providerList: {
           isConnected ? "" : "opacity-50"
         )}
       >
-        <FaGithub className={cn("size-10", isConnected ? "" : "opacity-50")} />
-        <p>Github</p>
+        <div className="p-1 bg-white rounded-full shadow dark:shadow-none text-primary">
+          <FaFacebook className="size-8" />
+        </div>
+        <p className="font-medium">Facebook</p>
       </div>
     ),
   },

@@ -6,11 +6,17 @@ import DeactivateBtn from "./deactivate-btn";
 import MFASwitch from "./mfa-switch";
 import { PasswordBtn } from "./password-btn";
 import ProviderList from "./provider-list";
+import { Trash2Icon } from "lucide-react";
 
 const SecurityPage = () => {
   const { currentUser } = useAuthContext();
+
   return (
-    <div className="w-full p-4 bg-white shadow m-2 rounded-lg">
+    <div className="w-full p-2">
+      <h3 className="text-3xl font-bold">Security</h3>
+      <p className="text-xs font-normal leading-snug text-muted-foreground">
+        Set up the settings below to protect your account
+      </p>
       <div className="flex flex-col lg:flex-row w-full gap-4 border-b py-4">
         <div className="w-full">
           <p className="font-bold">Email address</p>
@@ -20,7 +26,7 @@ const SecurityPage = () => {
         </div>
         <div className="flex gap-4 items-center justify-between w-full">
           <div className="text-sm">
-            <p>{currentUser?.email}</p>
+            <p className="font-medium">gaconght@gmail.com</p>
             <div className="text-green-500">Verified</div>
           </div>
           <Button className="rounded-full" variant="outline">
@@ -32,7 +38,7 @@ const SecurityPage = () => {
         <div className="w-full">
           <p className="font-bold">Password</p>
           <p className="text-xs font-normal leading-snug text-muted-foreground">
-            Set a unique password to protect your account.
+            Set a highly secure password to protect your account.
           </p>
         </div>
 
@@ -45,11 +51,18 @@ const SecurityPage = () => {
             Another way to log in to your account.
           </p>
         </div>
-        <ProviderList oauthProviders={[]} />
+        <ProviderList
+          oauthProviders={[
+            { id: "123123", provider: "google", providerId: "Asdasd" },
+            { id: "123123", provider: "facebook", providerId: "Asdasd" },
+          ]}
+        />
       </div>
       <div className="flex w-full gap-4 border-b py-4">
         <div className="w-full">
-          <p className="font-bold">Mutible-factor authentication (MFA)</p>
+          <p className="font-bold after:content-['*'] after:text-red-500">
+            Mutible-factor authentication (MFA)
+          </p>
           <p className="text-xs font-normal leading-snug text-muted-foreground">
             Make your account extra secure. Along with your password, you'll
             need to enter a code
@@ -68,6 +81,9 @@ const SecurityPage = () => {
         </div>
 
         <DeactivateBtn />
+        <button>
+          <Trash2Icon className="text-red-500 shrink-0 size-5" />
+        </button>
       </div>
     </div>
   );
