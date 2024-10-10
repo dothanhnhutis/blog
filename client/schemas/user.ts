@@ -1,12 +1,11 @@
 import { z } from "zod";
 export const roles = [
   "ADMIN",
-  "MANAGER",
-  "SALER",
-  "BLOGER",
+  "SUPER_ADMIN",
+  "BUSINESS_PARTNER",
   "CUSTOMER",
 ] as const;
-export const status = ["Active", "Suspended", "Disabled"] as const;
+export const status = ["ACTIVE", "SUSPENDED", "DISABLED"] as const;
 
 export const createPasswordSchema = z
   .object({

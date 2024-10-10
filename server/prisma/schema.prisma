@@ -21,6 +21,12 @@ enum UserStatus {
   DISABLED
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
   id                       String           @id @default(uuid())
   email                    String?          @unique
@@ -36,16 +42,28 @@ model User {
   reActiveExpires          DateTime? //4h
   firstName                String
   lastName                 String
+  birthDate                String?
+  gender                   Gender?
   picture                  String?
-  phoneNumber              String           @default("")
+  phoneNumber              String?
   createdAt                DateTime         @default(now())
   updatedAt                DateTime         @updatedAt
   oauthProviders           OauthProvider[]
   mfa                      MFA?
   articleContent           ArticleContent[]
   productContent           ProductContent[]
+  address                  Address[]
 
   @@index([email, emailVerificationToken, passwordResetToken, reActiveToken])
+}
+
+model Address {
+  id          String  @id @default(uuid())
+  phoneNumber String
+  address     String
+  idDefault   Boolean
+  userId      String
+  user        User    @relation(fields: [userId], references: [id])
 }
 
 model OauthProvider {

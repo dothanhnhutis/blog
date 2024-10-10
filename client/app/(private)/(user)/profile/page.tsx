@@ -160,8 +160,8 @@ const ProfilePage = () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <EditProfileForm />
-      <EditPhoto />
+      {/* <EditProfileForm />
+      <EditPhoto /> */}
 
       <div className="grid gap-2 sm:grid-cols-[1fr_minmax(200px,250px)] overflow-hidden mt-4">
         <div className="grid min-[300px]:grid-cols-2 gap-2 h-auto">
@@ -214,10 +214,10 @@ const ProfilePage = () => {
             <p>Maximum file size is 1 MB</p>
           </div>
           <div className="flex flex-col min-[300px]:flex-row gap-2 items-center justify-center w-full">
-            <button className="w-full max-w-[150px] font-medium text-sm h-10 bg-primary rounded-lg text-white px-3 py-2">
+            <button className="w-full max-w-[150px] font-medium text-sm h-10 bg-primary rounded-lg text-white ">
               Change picture
             </button>
-            <button className="w-full max-w-[150px] font-medium text-sm h-10 bg-red-500 rounded-lg text-white px-3 py-2">
+            <button className="w-full max-w-[150px] font-medium text-sm h-10 bg-red-500 rounded-lg text-white ">
               Delete picture
             </button>
           </div>

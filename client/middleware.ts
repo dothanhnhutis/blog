@@ -60,13 +60,15 @@ export async function middleware(request: NextRequest) {
   let user: User | undefined;
   if (cookies().has(configs.NEXT_PUBLIC_SESSION_KEY)) {
     user = await getCurrentUser();
+
     emailVerified = user?.emailVerified || false;
   }
-
+  // if (!user) cookies().set(configs.NEXT_PUBLIC_SESSION_KEY, "", { maxAge: 0 });
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-  const isPrivateRoute = privateRegExpRoutes.some((routes) =>
-    routes.test(nextUrl.pathname)
-  );
+  // const isPrivateRoute = privateRegExpRoutes.some((routes) =>
+  //   routes.test(nextUrl.pathname)
+  // );
+  console.log(nextUrl.pathname);
 
   // if (user) {
   //   if (emailVerified) {

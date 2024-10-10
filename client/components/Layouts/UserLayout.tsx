@@ -36,7 +36,7 @@ const UserLayout = async ({
 }>) => {
   return (
     <div>
-      <header className="sticky top-0 z-50 bg-white shadow">
+      <header className="sticky top-0 z-50 bg-background shadow">
         <div className="flex items-center justify-between p-2 mx-auto max-w-screen-xl">
           <Logo className="size-14 shrink-0" />
           <div className="lg:flex items-center justify-center gap-2 hidden">
@@ -137,7 +137,7 @@ const UserLayout = async ({
         </div>
       </header>
 
-      <main className="bg-white">
+      <main className="">
         <div className="flex flex-col md:flex-row relative mx-auto max-w-screen-xl">
           <UserSideBar />
           {children}
