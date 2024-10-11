@@ -31,31 +31,25 @@ type SideBarLinkProps = {
   open: boolean;
 };
 
-const SideBarLink = ({
-  href,
-  selected,
-  title,
-  Icon,
-  open,
-}: SideBarLinkProps) => {
+const SideBarLink = (props: SideBarLinkProps): React.ReactNode => {
   return (
     <Link
-      href={href}
+      href={props.href}
       className={cn(
         "flex flex-shrink-0 rounded-lg p-2 gap-2 items-center transition-all ease-in-out duration-300",
-        selected
+        props.selected
           ? "text-blue-600 font-bold bg-blue-100 hover:bg-blue-200"
           : "text-gray-500 font-medium hover:bg-gray-200"
       )}
     >
-      <Icon className="shrink-0 size-6" />
+      <props.Icon className="shrink-0 size-6" />
       <p
         className={cn(
           "text-sm w-full truncate",
-          open ? "opacity-0" : "opacity-100"
+          props.open ? "opacity-0" : "opacity-100"
         )}
       >
-        {title}
+        {props.title}
       </p>
     </Link>
   );
@@ -120,6 +114,10 @@ const sideBarData: (Omit<SideBarLinkProps, "open" | "selected"> & {
   },
 ];
 
+const KAL = () => {
+  return <div>sdads</div>;
+};
+
 const UserSideBar = () => {
   const [open, setOpen] = React.useState<boolean>(false);
   const path = usePathname();
@@ -133,27 +131,38 @@ const UserSideBar = () => {
           : "w-[200px] min-[1224px]:border-none"
       )}
     >
-      <TooltipProvider delayDuration={0}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline">Hover</Button>
-          </TooltipTrigger>
-          <TooltipContent side="right" align="center">
-            <p>Add to library</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline">Hover</Button>
-          </TooltipTrigger>
-          <TooltipContent side="right" align="center">
-            <p>Add to library</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <TooltipProvider delayDuration={300}>
+        <ScrollArea>
+          <div
+            className={cn(
+              "flex gap-1 flex-col h-[calc(100vh_-_56px_-_113px)] p-2",
+              open ? "w-[56px]" : "w-full"
+            )}
+          >
+            {sideBarData.map((s, idx) => (
+              <Tooltip key={idx}>
+                <TooltipTrigger asChild>
+                  <KAL />
+                </TooltipTrigger>
+                <TooltipContent side="right" align="center">
+                  <p>Add to library</p>
+                </TooltipContent>
+              </Tooltip>
+            ))}
 
-      <ScrollArea>
-        <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline">Hover</Button>
+              </TooltipTrigger>
+              <TooltipContent side="right" align="center">
+                <p>Add to library</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </ScrollArea>
+      </TooltipProvider>
+      <TooltipProvider delayDuration={0} disableHoverableContent={true}>
+        <ScrollArea>
           <div
             className={cn(
               "flex gap-1 flex-col h-[calc(100vh_-_56px_-_113px)] p-2",
@@ -177,8 +186,8 @@ const UserSideBar = () => {
               </Tooltip>
             ))}
           </div>
-        </TooltipProvider>
-      </ScrollArea>
+        </ScrollArea>
+      </TooltipProvider>
       <div className="absolute bottom-0 left-0 right-0 bg-background">
         <div className="space-y-1 p-2">
           <SideBarLink
