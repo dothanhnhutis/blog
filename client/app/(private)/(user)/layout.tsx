@@ -1,5 +1,4 @@
 import UserLayout from "@/components/Layouts/UserLayout";
-import UserLayout1 from "@/components/Layouts/UserLayout1";
 import React from "react";
 
 const PrivateLayout = async ({
@@ -7,7 +6,7 @@ const PrivateLayout = async ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  return <UserLayout1>{children}</UserLayout1>;
+  return <UserLayout>{children}</UserLayout>;
 };
 
 export default PrivateLayout;

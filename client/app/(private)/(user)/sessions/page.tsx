@@ -4,7 +4,7 @@ import React from "react";
 
 const SessionsPage = () => {
   return (
-    <div className="w-full p-2 ">
+    <div className="mx-auto max-w-screen-lg w-full bg-white p-4">
       <div className="min-[300px]:flex-row w-full gap-4 border-b pb-4">
         <h3 className="text-3xl font-bold">Sessions</h3>
         <p className="text-xs font-normal leading-snug text-muted-foreground">

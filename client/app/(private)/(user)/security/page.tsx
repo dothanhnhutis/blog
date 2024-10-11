@@ -12,7 +12,7 @@ const SecurityPage = () => {
   const { currentUser } = useAuthContext();
 
   return (
-    <div className="w-full p-2">
+    <div className="mx-auto max-w-screen-lg w-full bg-white p-4">
       <h3 className="text-3xl font-bold">Security</h3>
       <p className="text-xs font-normal leading-snug text-muted-foreground">
         Set up the settings below to protect your account

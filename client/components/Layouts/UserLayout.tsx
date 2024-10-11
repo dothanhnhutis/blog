@@ -1,5 +1,18 @@
-import React, { useState } from "react";
+import React from "react";
 import { Logo } from "../logo";
+import { Button } from "../ui/button";
+import {
+  BellIcon,
+  LogOutIcon,
+  MailIcon,
+  MenuIcon,
+  ShoppingBagIcon,
+} from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Skeleton } from "../ui/skeleton";
+import configs from "@/config";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,36 +22,18 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import configs from "@/config";
-import { Skeleton } from "../ui/skeleton";
-import {
-  BellIcon,
-  CookieIcon,
-  LogOutIcon,
-  MailIcon,
-  MenuIcon,
-  SettingsIcon,
-  ShieldCheckIcon,
-  ShoppingBagIcon,
-  SquareUserRoundIcon,
-} from "lucide-react";
-import Link from "next/link";
-import { ScrollArea } from "../ui/scroll-area";
-import { Button } from "../ui/button";
 import UserSideBar from "./components/user-sidebar";
-import { cn } from "@/lib/utils";
 
-const UserLayout = async ({
+const UserLayout = ({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
   return (
-    <div>
-      <header className="sticky top-0 z-50 bg-background shadow">
-        <div className="flex items-center justify-between p-2 mx-auto max-w-screen-xl">
-          <Logo className="size-14 shrink-0" />
+    <div className="bg-gray-100">
+      <header className="sticky top-0 z-50 shadow backdrop-blur bg-background/60">
+        <div className="flex items-center justify-between p-2">
+          <Logo className="size-10 shrink-0" />
           <div className="lg:flex items-center justify-center gap-2 hidden">
             <Button
               aria-label="menu"
@@ -56,7 +51,6 @@ const UserLayout = async ({
             >
               <ShoppingBagIcon className="shrink-0 size-6 text-gray-500" />
             </Button>
-
             <DropdownMenu>
               <DropdownMenuTrigger className="outline-none" asChild>
                 <div className="p-1  hover:bg-blue-100 rounded-full cursor-pointer">
@@ -136,13 +130,10 @@ const UserLayout = async ({
           </Button>
         </div>
       </header>
-
-      <main className="">
-        <div className="flex flex-col md:flex-row relative mx-auto max-w-screen-xl">
-          <UserSideBar />
-          {children}
-        </div>
-      </main>
+      <div className="flex">
+        <UserSideBar />
+        {children}
+      </div>
     </div>
   );
 };
