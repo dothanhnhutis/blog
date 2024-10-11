@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { LinkHTMLAttributes } from "react";
 import {
   CookieIcon,
   CreditCardIcon,
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
+import Link, { LinkProps } from "next/link";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -28,44 +28,46 @@ type SideBarLinkProps = {
   title: string;
   selected: boolean;
   Icon: LucideIcon;
-  open: boolean;
+  isOpen: boolean;
 };
-
-const SideBarLink = (props: SideBarLinkProps): React.ReactNode => {
+const SideBarLink = React.forwardRef<
+  HTMLAnchorElement,
+  React.AnchorHTMLAttributes<HTMLAnchorElement> & SideBarLinkProps
+>(({ href, selected, Icon, title, isOpen, ...props }, ref) => {
   return (
     <Link
-      href={props.href}
+      ref={ref}
+      {...props}
+      href={href}
       className={cn(
         "flex flex-shrink-0 rounded-lg p-2 gap-2 items-center transition-all ease-in-out duration-300",
-        props.selected
+        selected
           ? "text-blue-600 font-bold bg-blue-100 hover:bg-blue-200"
           : "text-gray-500 font-medium hover:bg-gray-200"
       )}
     >
-      <props.Icon className="shrink-0 size-6" />
+      <Icon className="shrink-0 size-6" />
       <p
         className={cn(
           "text-sm w-full truncate",
-          props.open ? "opacity-0" : "opacity-100"
+          isOpen ? "opacity-0" : "opacity-100"
         )}
       >
-        {props.title}
+        {title}
       </p>
     </Link>
   );
-};
+});
 
-const SideBarBtn = ({
-  href,
-  selected,
-  Icon,
-}: {
-  href: string;
-  selected: boolean;
-  Icon: LucideIcon;
-}) => {
+const SideBarBtn = React.forwardRef<
+  HTMLAnchorElement,
+  React.AnchorHTMLAttributes<HTMLAnchorElement> &
+    Omit<SideBarLinkProps, "title">
+>(({ href, selected, Icon, ...props }, ref) => {
   return (
     <Link
+      ref={ref}
+      {...props}
       href={href}
       className={cn(
         "flex flex-shrink-0 rounded-lg p-2 gap-2 items-center transition-all ease-in-out duration-300",
@@ -77,9 +79,9 @@ const SideBarBtn = ({
       <Icon className="shrink-0 size-6 " />
     </Link>
   );
-};
+});
 
-const sideBarData: (Omit<SideBarLinkProps, "open" | "selected"> & {
+const sideBarData: (Omit<SideBarLinkProps, "isOpen" | "selected"> & {
   isSelected: (path: string) => boolean;
 })[] = [
   {
@@ -114,24 +116,31 @@ const sideBarData: (Omit<SideBarLinkProps, "open" | "selected"> & {
   },
 ];
 
-const KAL = () => {
-  return <div>sdads</div>;
-};
+const KAL = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>((props, ref) => {
+  return (
+    <div ref={ref} {...props}>
+      sdads
+    </div>
+  );
+});
 
 const UserSideBar = () => {
   const [open, setOpen] = React.useState<boolean>(false);
   const path = usePathname();
 
   return (
-    <div
-      className={cn(
-        "shrink-0 h-[calc(100vh_-_56px)] sticky left-0 top-[56px] transition-all ease-in-out duration-300 bg-white border-r ",
-        open
-          ? "w-[56px] min-[1080px]:border-none"
-          : "w-[200px] min-[1224px]:border-none"
-      )}
-    >
-      <TooltipProvider delayDuration={300}>
+    <TooltipProvider delayDuration={0}>
+      <div
+        className={cn(
+          "shrink-0 h-[calc(100vh_-_56px)] sticky left-0 top-[56px] transition-all ease-in-out duration-300 bg-white border-r ",
+          open
+            ? "w-[56px] min-[1080px]:border-none"
+            : "w-[200px] min-[1224px]:border-none"
+        )}
+      >
         <ScrollArea>
           <div
             className={cn(
@@ -141,43 +150,13 @@ const UserSideBar = () => {
           >
             {sideBarData.map((s, idx) => (
               <Tooltip key={idx}>
-                <TooltipTrigger asChild>
-                  <KAL />
-                </TooltipTrigger>
-                <TooltipContent side="right" align="center">
-                  <p>Add to library</p>
-                </TooltipContent>
-              </Tooltip>
-            ))}
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline">Hover</Button>
-              </TooltipTrigger>
-              <TooltipContent side="right" align="center">
-                <p>Add to library</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </ScrollArea>
-      </TooltipProvider>
-      <TooltipProvider delayDuration={0} disableHoverableContent={true}>
-        <ScrollArea>
-          <div
-            className={cn(
-              "flex gap-1 flex-col h-[calc(100vh_-_56px_-_113px)] p-2",
-              open ? "w-[56px]" : "w-full"
-            )}
-          >
-            {sideBarData.map((s, idx) => (
-              <Tooltip key={idx}>
-                <TooltipTrigger asChild>
+                <TooltipTrigger asChild disabled>
                   <SideBarLink
                     href={s.href}
                     selected={s.isSelected(path)}
                     Icon={s.Icon}
                     title={s.title}
-                    open={open}
+                    isOpen={open}
                   />
                 </TooltipTrigger>
                 <TooltipContent side="right" align="center">
@@ -187,40 +166,56 @@ const UserSideBar = () => {
             ))}
           </div>
         </ScrollArea>
-      </TooltipProvider>
-      <div className="absolute bottom-0 left-0 right-0 bg-background">
-        <div className="space-y-1 p-2">
-          <SideBarLink
-            href="/settings"
-            selected={path.startsWith("/settings")}
-            Icon={SettingsIcon}
-            title="Settings"
-            open={open}
-          />
-        </div>
 
-        <div
-          className={cn(
-            "flex border-t justify-between items-center p-2 gap-1",
-            open ? "flex-col" : "flex-row"
-          )}
-        >
-          <SideBarBtn
-            href="/"
-            selected={path.startsWith("/")}
-            Icon={ListIcon}
-          />
+        <div className="absolute bottom-0 left-0 right-0 bg-background">
+          <div className="space-y-1 p-2">
+            <Tooltip>
+              <TooltipTrigger asChild disabled>
+                <SideBarLink
+                  href="/settings"
+                  selected={path.startsWith("/settings")}
+                  Icon={SettingsIcon}
+                  title="Settings"
+                  isOpen={open}
+                />
+              </TooltipTrigger>
+              <TooltipContent side="right" align="center">
+                <p>Settings</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => setOpen(!open)}
-            className="flex flex-shrink-0 rounded-lg p-2 gap-2 items-center transition-all ease-in-out duration-300 text-gray-500 font-medium hover:bg-gray-100"
+          <div
+            className={cn(
+              "flex border-t justify-between items-center p-2 gap-1",
+              open ? "flex-col" : "flex-row"
+            )}
           >
-            <PanelLeftCloseIcon className="shrink-0 size-6 " />
-          </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SideBarBtn
+                  isOpen={open}
+                  href="/"
+                  selected={path.startsWith("/")}
+                  Icon={ListIcon}
+                />
+              </TooltipTrigger>
+              <TooltipContent side={"top"} align="center">
+                <p>Settings</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <button
+              type="button"
+              onClick={() => setOpen(!open)}
+              className="flex flex-shrink-0 rounded-lg p-2 gap-2 items-center transition-all ease-in-out duration-300 text-gray-500 font-medium hover:bg-gray-100"
+            >
+              <PanelLeftCloseIcon className="shrink-0 size-6 " />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
