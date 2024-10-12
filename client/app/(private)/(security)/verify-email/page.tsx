@@ -44,7 +44,7 @@ const VerifyEmailPage = () => {
           </h1>
           <div className="text-center text-muted-foreground text-base">
             We just sent an email to the address:{" "}
-            <strong className="block md:inline">{currentUser?.email}</strong>
+            <strong className="block md:inline">gaconght@gmail.com</strong>
           </div>
           <p className="text-center text-muted-foreground text-base">
             Please check your email and select the link provided to verify your
