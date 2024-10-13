@@ -444,6 +444,8 @@ export type User = {
   password: string | null;
   firstName: string;
   lastName: string;
+  birthDate: string | null;
+  gender: "MALE" | "FEMALE" | "OTHER" | null;
   picture: string | null;
   phoneNumber: string;
   mfa: {

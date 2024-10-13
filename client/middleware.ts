@@ -6,6 +6,8 @@ import {
   roleAccessRoutes,
   DEFAULT_LOGOUT_REDIRECT,
   EMAIL_VERIFY_ROUTE,
+  middleRegExpRoutes,
+  COMPLETE_PROFILE_ROUTE,
 } from "@/routes";
 import { NextResponse, userAgent } from "next/server";
 import type { NextRequest } from "next/server";
@@ -56,19 +58,39 @@ export async function middleware(request: NextRequest) {
   //Protected Route
   const { nextUrl } = request;
 
-  let emailVerified: boolean = false;
-  let user: User | undefined;
-  if (cookies().has(configs.NEXT_PUBLIC_SESSION_KEY)) {
-    user = await getCurrentUser();
+  const user = await getCurrentUser();
 
-    emailVerified = user?.emailVerified || false;
-  }
-  // if (!user) cookies().set(configs.NEXT_PUBLIC_SESSION_KEY, "", { maxAge: 0 });
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-  // const isPrivateRoute = privateRegExpRoutes.some((routes) =>
-  //   routes.test(nextUrl.pathname)
-  // );
-  console.log(nextUrl.pathname);
+  const isPrivateRoute = privateRegExpRoutes.some((routes) =>
+    routes.test(nextUrl.pathname)
+  );
+
+  if (isPrivateRoute) {
+    if (!user) return redirect(request, DEFAULT_LOGOUT_REDIRECT);
+
+    if (!user.emailVerified) {
+      return redirect(request, EMAIL_VERIFY_ROUTE);
+    }
+
+    if (EMAIL_VERIFY_ROUTE == nextUrl.pathname) {
+      return redirect(request, DEFAULT_LOGIN_REDIRECT);
+    }
+
+    if (user.gender == null || user.birthDate == null)
+      return redirect(request, COMPLETE_PROFILE_ROUTE);
+
+    if (COMPLETE_PROFILE_ROUTE == nextUrl.pathname) {
+      return redirect(request, DEFAULT_LOGIN_REDIRECT);
+    }
+
+    const validRoute = roleAccessRoutes[user.role].some((routes) =>
+      routes.test(nextUrl.pathname)
+    );
+
+    if (!validRoute) {
+      return redirect(request, DEFAULT_LOGIN_REDIRECT);
+    }
+  }
 
   // if (user) {
   //   if (emailVerified) {

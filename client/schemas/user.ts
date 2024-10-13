@@ -189,6 +189,10 @@ export type User = {
   role: CreateUserInput["role"];
   emailVerified: boolean;
   status: CreateUserInput["status"];
+  firstName: string;
+  lastName: string;
+  birthDate: string | null;
+  gender: "MALE" | "FEMALE" | "OTHER" | null;
   hasPassword: boolean;
   mFAEnabled: boolean;
   profile: {

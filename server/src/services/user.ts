@@ -17,6 +17,8 @@ export const userSelectDefault: Prisma.UserSelect = {
   password: true,
   firstName: true,
   lastName: true,
+  gender: true,
+  birthDate: true,
   picture: true,
   phoneNumber: true,
   mfa: {

@@ -55,75 +55,16 @@ const CompleteProfilePage = () => {
               </label>
               <Input type="text" id="lastName" name="lastName" />
             </div>
-            <div className="flex flex-col gap-1 col-span-3">
+            <div className="flex flex-col gap-1 col-span-4">
               <label htmlFor="phoneNumber">Phone number</label>
-              <input type="text" id="phoneNumber" name="phoneNumber" />
+              <Input />
             </div>
-            <div className="grid grid-cols-subgrid gap-1 col-span-6">
+
+            <div className="grid gap-1 col-span-6">
               <label htmlFor="birthDate" className="col-span-full">
                 Birth of date
               </label>
-              <div className="col-start-1 col-span-2 ">
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Date" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Date</SelectLabel>
-                      {Array.from({ length: 31 }).map((_, idx) => (
-                        <SelectItem key={idx} value={`${idx + 1}`}>
-                          {idx + 1}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-start-3 col-span-2">
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Month</SelectLabel>
-                      {months.map((month, idx) => (
-                        <SelectItem key={idx} value={`${idx + 1}`}>
-                          {month}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-start-5 col-span-2">
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Year</SelectLabel>
-                      <SelectItem value="2012">2012</SelectItem>
-                      <SelectItem value="2013">2013</SelectItem>
-                      <SelectItem value="2014">2014</SelectItem>
-                      <SelectItem value="2015">2015</SelectItem>
-                      <SelectItem value="2016">2016</SelectItem>
-                      <SelectItem value="2017">2017</SelectItem>
-                      <SelectItem value="2018">2018</SelectItem>
-                      <SelectItem value="2019">2019</SelectItem>
-                      <SelectItem value="2020">2020</SelectItem>
-                      <SelectItem value="2021">2021</SelectItem>
-                      <SelectItem value="2022">2022</SelectItem>
-                      <SelectItem value="2023">2023</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid  gap-1 col-span-6">
-              <DatePicker yearCount={20} />
+              <DatePicker yearRange={10} />
             </div>
 
             <div className="flex flex-col gap-2 col-span-6">
