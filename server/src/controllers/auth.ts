@@ -135,7 +135,7 @@ export async function recoverAccount(
     template: emaiEnum.RECOVER_ACCOUNT,
     receiver: email,
     locals: {
-      username: existingUser.firstName + "" + existingUser.lastName,
+      username: existingUser.fullName!,
       recoverLink,
     },
   });
@@ -283,7 +283,7 @@ export async function sendReactivateAccount(
     template: emaiEnum.REACTIVATE_ACCOUNT,
     receiver: req.body.email,
     locals: {
-      username: user.firstName + "" + user.lastName,
+      username: user.fullName!,
       reactivateLink,
     },
   });

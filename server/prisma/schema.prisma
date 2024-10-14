@@ -40,8 +40,7 @@ model User {
   status                   UserStatus       @default(ACTIVE)
   reActiveToken            String?          @unique
   reActiveExpires          DateTime? //4h
-  firstName                String
-  lastName                 String
+  fullName                 String?
   birthDate                String?
   gender                   Gender?
   picture                  String?

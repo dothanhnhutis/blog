@@ -30,18 +30,6 @@ export const signinSchema = z.object({
 export const signupSchema = z.object({
   body: z
     .object({
-      firstName: z
-        .string({
-          required_error: "firstName is required",
-          invalid_type_error: "firstName must be string",
-        })
-        .min(1, "firstName can't be empty"),
-      lastName: z
-        .string({
-          required_error: "lastName is required",
-          invalid_type_error: "lastName must be string",
-        })
-        .min(1, "lastName can't be empty"),
       email: z
         .string({
           required_error: "Email is required",
@@ -59,14 +47,16 @@ export const signupSchema = z.object({
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]*$/,
           "Password must include: letters, numbers and special characters"
         ),
-      // otp: z
-      //   .string({
-      //     required_error: "otp is required",
-      //     invalid_type_error: "otp must be string",
-      //   })
-      //   .length(6, "Invalid otp code"),
+      confirmPassword: z.string({
+        required_error: "confirmPassword is required",
+        invalid_type_error: "confirmPassword must be string",
+      }),
     })
-    .strict(),
+    .strict()
+    .refine((data) => data.confirmPassword == data.password, {
+      message: "confirmPassword does not match password",
+      path: ["confirmPassword"],
+    }),
 });
 
 export const sendVerificationEmailSchema = z.object({

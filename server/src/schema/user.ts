@@ -151,18 +151,12 @@ const editUserBody = z.object({
     })
     .min(1, "Picture can't be empty")
     .nullable(),
-  firstName: z
+  fullName: z
     .string({
-      required_error: "First name is required",
-      invalid_type_error: "First name must be string",
+      required_error: "fullName is required",
+      invalid_type_error: "fullName must be string",
     })
-    .min(1, "First name can't be empty"),
-  lastName: z
-    .string({
-      required_error: "Last name is required",
-      invalid_type_error: "Last name must be string",
-    })
-    .min(1, "Last name can't be empty"),
+    .min(1, "fullName can't be empty"),
   phoneNumber: z
     .string({
       required_error: "phone is required",

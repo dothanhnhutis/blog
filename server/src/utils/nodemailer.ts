@@ -13,6 +13,7 @@ oAuth2Client.setCredentials({ refresh_token: configs.GOOGLE_REFRESH_TOKEN });
 
 export enum emaiEnum {
   VERIFY_EMAIL = "verifyEmail",
+  SIGNUP = "signup",
   RECOVER_ACCOUNT = "recoverAccount",
   REACTIVATE_ACCOUNT = "reactivateAccount",
   OTP_VERIFY_ACCOUNT = "otpVerifyAccount",
@@ -21,6 +22,9 @@ export enum emaiEnum {
 type LocalsPayload = {
   [emaiEnum.VERIFY_EMAIL]: {
     username: string;
+    verificationLink: string;
+  };
+  [emaiEnum.SIGNUP]: {
     verificationLink: string;
   };
   [emaiEnum.RECOVER_ACCOUNT]: {

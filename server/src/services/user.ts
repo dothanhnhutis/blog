@@ -15,8 +15,7 @@ export const userSelectDefault: Prisma.UserSelect = {
   role: true,
   status: true,
   password: true,
-  firstName: true,
-  lastName: true,
+  fullName: true,
   gender: true,
   birthDate: true,
   picture: true,
@@ -242,12 +241,7 @@ export async function searchUser(input: SearchUserProps) {
         ...args.where,
         OR: [
           {
-            firstName: {
-              contains: fullName,
-            },
-          },
-          {
-            lastName: {
+            fullName: {
               contains: fullName,
             },
           },
@@ -306,7 +300,7 @@ export async function insertUserByAdmin(
   input: CreateUserReq["body"],
   select?: Prisma.UserSelect
 ) {
-  const { password, firstName, lastName, email, ...rest } = input;
+  const { password, email, fullName, ...rest } = input;
   const hash = hashData(password);
 
   const expires: number = Math.floor((Date.now() + 4 * 60 * 60 * 1000) / 1000);
@@ -326,8 +320,7 @@ export async function insertUserByAdmin(
       password: hash,
       emailVerificationExpires: new Date(expires * 1000),
       emailVerificationToken: session,
-      firstName,
-      lastName,
+      fullName,
       ...rest,
     },
     select: Prisma.validator<Prisma.UserSelect>()({
@@ -340,7 +333,7 @@ export async function insertUserByAdmin(
     template: emaiEnum.VERIFY_EMAIL,
     receiver: email,
     locals: {
-      username: firstName + " " + lastName,
+      username: fullName,
       verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
     },
   });
@@ -352,7 +345,7 @@ export async function insertUserWithPassword(
   input: SignUpReq["body"],
   select?: Prisma.UserSelect
 ) {
-  const { password, firstName, lastName, email } = input;
+  const { password, email } = input;
 
   const hash = hashData(password);
   const expires: number = Math.floor((Date.now() + 4 * 60 * 60 * 1000) / 1000);
@@ -372,8 +365,6 @@ export async function insertUserWithPassword(
       password: hash,
       emailVerificationExpires: new Date(expires * 1000),
       emailVerificationToken: session,
-      firstName,
-      lastName,
     },
     select: Prisma.validator<Prisma.UserSelect>()({
       ...userSelectDefault,
@@ -382,10 +373,9 @@ export async function insertUserWithPassword(
   });
 
   await sendMail({
-    template: emaiEnum.VERIFY_EMAIL,
+    template: emaiEnum.SIGNUP,
     receiver: email,
     locals: {
-      username: firstName + " " + lastName,
       verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
     },
   });
@@ -461,7 +451,7 @@ export async function editUserById(
       template: emaiEnum.VERIFY_EMAIL,
       receiver: input.email,
       locals: {
-        username: data.firstName + " " + data.lastName,
+        username: input.fullName || input.fullName || "",
         verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
       },
     });
