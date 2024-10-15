@@ -60,7 +60,7 @@ function userRouter(): Router {
   );
   router.get(
     "/users/me",
-    authMiddleware({ emailVerified: false }),
+    authMiddleware({ emailVerified: false, mfa: false }),
     currentUser
   );
   router.get("/users/sessions", authMiddleware(), readAllSession);

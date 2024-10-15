@@ -149,34 +149,34 @@ export async function signIn(
   req: Request<{}, {}, SignInReq["body"]>,
   res: Response
 ) {
-  const { email, password, mfa_code } = req.body;
+  const { email, password } = req.body;
   const user = await getUserByEmail(email);
 
   if (!user || !user.password || !(await compareData(user.password, password)))
     throw new BadRequestError("Invalid email or password");
 
-  if (user.mfa) {
-    if (!mfa_code) throw new BadRequestError("MFA code is required");
+  // if (user.mfa) {
+  //   if (!mfa_code) throw new BadRequestError("MFA code is required");
 
-    const mFAValidate =
-      validateMFA({
-        secret: user.mfa.secretKey,
-        token: mfa_code,
-      }) == 0;
-    const isBackupCode = user.mfa.backupCodes.includes(mfa_code);
-    const isBackupCodeUsed = user.mfa.backupCodesUsed.includes(mfa_code);
+  //   const mFAValidate =
+  //     validateMFA({
+  //       secret: user.mfa.secretKey,
+  //       token: mfa_code,
+  //     }) == 0;
+  //   const isBackupCode = user.mfa.backupCodes.includes(mfa_code);
+  //   const isBackupCodeUsed = user.mfa.backupCodesUsed.includes(mfa_code);
 
-    if (!mFAValidate) {
-      if (isBackupCodeUsed)
-        throw new BadRequestError("MFA backup codes are used");
-      if (!isBackupCode) throw new BadRequestError("Invalid MFA code");
+  //   if (!mFAValidate) {
+  //     if (isBackupCodeUsed)
+  //       throw new BadRequestError("MFA backup codes are used");
+  //     if (!isBackupCode) throw new BadRequestError("Invalid MFA code");
 
-      updateBackupCodeUsedById(user.id, mfa_code);
-    }
-  } else {
-    if (mfa_code)
-      throw new BadRequestError("MFA code is an unrecognized key in body");
-  }
+  //     updateBackupCodeUsedById(user.id, mfa_code);
+  //   }
+  // } else {
+  //   if (mfa_code)
+  //     throw new BadRequestError("MFA code is an unrecognized key in body");
+  // }
 
   if (user.status == "SUSPENDED")
     throw new BadRequestError("Your account is currently closed");
@@ -189,6 +189,7 @@ export async function signIn(
   const { sessionKey, cookieOpt } = await createSession({
     userId: user.id,
     reqIp: req.ip || "",
+    mfa: user.mfa ? false : true,
     userAgent: req.headers["user-agent"] || "",
   });
 
@@ -203,8 +204,11 @@ export async function signIn(
     )
     .json({
       message: "Sign in success",
+      mfa: !!user.mfa,
     });
 }
+
+// export async function name(params: type) {}
 
 export async function resetPassword(
   req: Request<ResetPasswordReq["params"], {}, ResetPasswordReq["body"]>,
@@ -405,6 +409,7 @@ export async function signInWithProviderCallBack(
 
   const { sessionKey, cookieOpt } = await createSession({
     userId: user.id,
+    mfa: true,
     reqIp: req.ip || "",
     userAgent: req.headers["user-agent"] || "",
   });

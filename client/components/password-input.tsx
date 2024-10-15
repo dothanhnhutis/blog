@@ -11,21 +11,18 @@ const PasswordInput = ({
   disabled,
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement> & {
-  open?: boolean;
   defaultOpen?: boolean;
-  onOpenChange?(open: boolean): void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) => {
-  const [isPassword, setIsPassword] = React.useState<boolean | undefined>(
-    defaultOpen
-  );
+  const [isPassword, setIsPassword] = React.useState<boolean>(() => {
+    return open || defaultOpen || false;
+  });
   const handleToggleBtn = () => {
-    if (open != undefined) {
-      if (onOpenChange) onOpenChange(!open);
-    } else if (defaultOpen != undefined) {
-      setIsPassword((prev) => !prev);
-      if (onOpenChange) onOpenChange(isPassword!);
+    if (open != undefined && typeof onOpenChange == "function") {
+      onOpenChange(!open);
     } else {
-      setIsPassword((prev) => !prev);
+      setIsPassword(!isPassword);
     }
   };
 
@@ -39,14 +36,26 @@ const PasswordInput = ({
     >
       <input
         disabled={disabled}
-        type={open || isPassword ? "password" : "text"}
+        type={
+          (
+            open != undefined && typeof onOpenChange == "function"
+              ? open
+              : isPassword
+          )
+            ? "password"
+            : "text"
+        }
         className={cn(
           "bg-transparent w-full outline-0 text-sm",
           disabled ? "opacity-50 cursor-not-allowed" : ""
         )}
         {...props}
       />
-      {open || isPassword ? (
+      {(
+        open != undefined && typeof onOpenChange == "function"
+          ? open
+          : isPassword
+      ) ? (
         <PiEyeClosedBold
           onClick={handleToggleBtn}
           className={cn(

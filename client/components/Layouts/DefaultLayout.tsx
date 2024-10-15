@@ -16,6 +16,7 @@ import constants from "@/constants";
 import { Logo } from "../logo";
 import { NavDesktop } from "./components/nav-desktop";
 import { NavMobile } from "./components/nav-mobile";
+import UserMenu from "./components/user-menu";
 
 const DefaultLayout = async ({
   children,
@@ -26,12 +27,12 @@ const DefaultLayout = async ({
     <>
       <header className="sticky top-0 z-50 bg-white">
         <div className="lg:mx-auto lg:max-w-7xl flex justify-between items-center p-2">
-          <Logo className="relative z-10" />
+          <Logo className="relative z-10 size-10 shrink-0" />
 
           <NavDesktop />
 
-          <div className="relative flex items-center gap-1 text-gray-500">
-            <div className="group relative flex justify-center w-[180px] max-[1120px]:w-auto">
+          <div className="relative flex items-center gap-2 text-gray-500">
+            {/* <div className="group relative flex justify-center w-[180px] max-[1120px]:w-auto">
               <input
                 type="text"
                 placeholder="Search"
@@ -49,7 +50,14 @@ const DefaultLayout = async ({
               >
                 <XIcon className="w-6 h-6" />
               </button>
-            </div>
+            </div> */}
+            <Link href={"/login"} className="text-sm">
+              Đăng nhập
+            </Link>
+            <Link href={"/signup"} className="text-sm">
+              Đăng ký
+            </Link>
+            {/* <UserMenu /> */}
             <NavMobile />
           </div>
         </div>

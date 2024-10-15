@@ -18,6 +18,8 @@ import constants from "@/constants";
 import { Montserrat } from "next/font/google";
 import { TankStackProvider } from "@/components/providers/tankStack-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/components/providers/auth-provider";
+import { getCurrentUser } from "./actions";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -36,20 +38,22 @@ export const metadata: Metadata = {
   openGraph: baseOpenGraph,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const currentUser = await getCurrentUser();
+
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${montserrat.variable} `}
+      className={`${montserrat.variable}`}
     >
       <body className="font-sans relative ">
         <TankStackProvider>
-          {children}
+          <AuthProvider initUser={currentUser}>{children}</AuthProvider>
           <Toaster visibleToasts={5} richColors />
         </TankStackProvider>
       </body>

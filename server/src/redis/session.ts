@@ -13,6 +13,7 @@ import configs from "@/configs";
 export type ISessionData = {
   id: string;
   userId: string;
+  mfa: boolean;
   cookie: CookieOptions;
   reqInfo: {
     ip: string;
@@ -26,10 +27,12 @@ const SESSION_MAX_AGE = 30 * 24 * 60 * 60000;
 
 export const createSession = async ({
   userId,
+  mfa,
   reqIp,
   userAgent,
 }: {
   userId: string;
+  mfa: boolean;
   reqIp?: string;
   userAgent?: string;
 }) => {
@@ -46,6 +49,7 @@ export const createSession = async ({
   const sessionData: ISessionData = {
     id: sessionId,
     userId,
+    mfa,
     cookie: cookieOpt,
     reqInfo: {
       ip: reqIp || "",

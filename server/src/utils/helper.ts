@@ -51,8 +51,10 @@ export function decrypt(encrypted: string, secret: string) {
       }
     )
     .safeParse(secret);
-  if (!secretValidate.success)
-    throw new Error(secretValidate.error.issues[0].message);
+  if (!secretValidate.success) {
+    // throw new Error(secretValidate.error.issues[0].message);
+    return;
+  }
   const parts = encrypted.split(".");
   const iv = Buffer.from(parts[0], "hex");
   const decipher = crypto.createDecipheriv(
@@ -60,7 +62,7 @@ export function decrypt(encrypted: string, secret: string) {
     Buffer.from(secretValidate.data, "base64"),
     iv
   );
-  let decrypted =
+  const decrypted =
     decipher.update(parts[1], "hex", "utf8") + decipher.final("utf8");
   return decrypted;
 }

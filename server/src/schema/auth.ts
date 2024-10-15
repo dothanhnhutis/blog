@@ -16,13 +16,6 @@ export const signinSchema = z.object({
         })
         .min(8, "invalid email or password")
         .max(40, "invalid email or password"),
-      mfa_code: z
-        .string({
-          required_error: "MFA code is required",
-          invalid_type_error: "MFA code must be string",
-        })
-        .length(6, "invalid MFA code")
-        .optional(),
     })
     .strict(),
 });

@@ -21,7 +21,7 @@ const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
           {/* <ToggleTheme /> */}
         </div>
       </header>
-      <div className="sm:p-8">{children}</div>
+      <main className="sm:p-8">{children}</main>
     </div>
   );
 };

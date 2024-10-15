@@ -140,9 +140,9 @@ export const SignInForm = ({
           className="rounded-lg sm:border bg-card text-card-foreground sm:shadow-sm p-4 sm:p-6 sm:mx-auto sm:max-w-md transition-all"
         >
           <div className="flex flex-col space-y-1.5">
-            <h3 className="font-semibold tracking-tight text-2xl">Login</h3>
+            <h3 className="font-semibold tracking-tight text-2xl">Đăng Nhập</h3>
             <p className="text-sm text-muted-foreground">
-              Enter your email below to login to your account
+              Nhập email và mật khẩu để đăng nhập vào tài khoản của bạn
             </p>
           </div>
 
@@ -160,14 +160,14 @@ export const SignInForm = ({
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Đăng nhập</Label>
                   <Link
                     href={`/recover${
                       formData.email == "" ? "" : "?email=" + formData.email
                     }`}
                     className="ml-auto inline-block text-sm underline "
                   >
-                    Forgot your password?
+                    Bạn quên mật khẩu?
                   </Link>
                 </div>
                 <PasswordInput
@@ -190,14 +190,14 @@ export const SignInForm = ({
                 {!openMFACode && isPending && (
                   <LoaderPinwheelIcon className="h-4 w-4 animate-spin flex-shrink-0 mr-2" />
                 )}
-                Login
+                Đăng nhập
               </Button>
-              <ContinueBtn label="Login with Google" redir="/login" />
+              <ContinueBtn label="Đăng nhập với Google" redir="/login" />
             </div>
             <div className="mt-4 text-center text-sm">
-              Don't have an account?{" "}
+              Bạn chưa có tài khoản?{" "}
               <Link className="underline" href="/signup">
-                Sign up
+                Đăng ký
               </Link>
             </div>
           </div>

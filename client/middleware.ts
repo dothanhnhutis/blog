@@ -47,14 +47,6 @@ function redirect(request: NextRequest, path?: string) {
 }
 
 export async function middleware(request: NextRequest) {
-  // console.log(
-  //   "ip",
-  //   request.headers.get("x-real-ip") ||
-  //     request.headers.get("x-forwarded-for") ||
-  //     ""
-  // );
-  // console.log("ua", userAgent(request).ua);
-
   //Protected Route
   const { nextUrl } = request;
 
@@ -72,16 +64,16 @@ export async function middleware(request: NextRequest) {
       return redirect(request, EMAIL_VERIFY_ROUTE);
     }
 
-    if (EMAIL_VERIFY_ROUTE == nextUrl.pathname) {
-      return redirect(request, DEFAULT_LOGIN_REDIRECT);
-    }
+    // if (EMAIL_VERIFY_ROUTE == nextUrl.pathname) {
+    //   return redirect(request, DEFAULT_LOGIN_REDIRECT);
+    // }
 
     if (user.gender == null || user.birthDate == null)
       return redirect(request, COMPLETE_PROFILE_ROUTE);
 
-    if (COMPLETE_PROFILE_ROUTE == nextUrl.pathname) {
-      return redirect(request, DEFAULT_LOGIN_REDIRECT);
-    }
+    // if (COMPLETE_PROFILE_ROUTE == nextUrl.pathname) {
+    //   return redirect(request, DEFAULT_LOGIN_REDIRECT);
+    // }
 
     const validRoute = roleAccessRoutes[user.role].some((routes) =>
       routes.test(nextUrl.pathname)
@@ -91,6 +83,7 @@ export async function middleware(request: NextRequest) {
       return redirect(request, DEFAULT_LOGIN_REDIRECT);
     }
   }
+  //-----------------------------------
 
   // if (user) {
   //   if (emailVerified) {

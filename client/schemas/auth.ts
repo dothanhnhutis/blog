@@ -21,24 +21,12 @@ export const signInSchema = z.object({
 
 export const signUpSchema = z
   .object({
-    firstName: z
-      .string({
-        required_error: "firstName field is required",
-        invalid_type_error: "firstName field must be string",
-      })
-      .min(1, "First name can't be empty"),
-    lastName: z
-      .string({
-        required_error: "lastName field is required",
-        invalid_type_error: "lastName field must be string",
-      })
-      .min(1, "Last name can't be empty"),
     email: z
       .string({
         required_error: "Email field is required",
         invalid_type_error: "Email field must be string",
       })
-      .email("Invalid email"),
+      .email("Email không hợp lệ"),
     password: z
       .string({
         required_error: "Password field is required",
@@ -58,8 +46,16 @@ export const signUpSchema = z
           });
         }
       }),
+    confirmPassword: z.string({
+      required_error: "confirmPassword is required",
+      invalid_type_error: "confirmPassword must be string",
+    }),
   })
-  .strict();
+  .strict()
+  .refine((data) => data.confirmPassword == data.password, {
+    message: "Xác nhận mật khẩu không khớp",
+    path: ["confirmPassword"],
+  });
 
 export const resetPasswordSchema = z
   .object({

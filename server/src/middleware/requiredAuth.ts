@@ -3,6 +3,7 @@ import { NotAuthorizedError, PermissionError } from "../error-handler";
 
 type TAuthMiddleware = {
   emailVerified: boolean;
+  mfa: boolean;
 };
 
 export const authMiddleware =
@@ -11,14 +12,18 @@ export const authMiddleware =
     if (!req.user) {
       throw new NotAuthorizedError();
     }
-    let newProps: Partial<TAuthMiddleware> = { ...props };
-
-    if (!props) {
-      newProps.emailVerified = true;
-    }
+    const newProps: TAuthMiddleware = {
+      emailVerified: true,
+      mfa: true,
+      ...props,
+    };
 
     if (newProps.emailVerified && !req.user.emailVerified) {
       throw new PermissionError("Your email hasn't been verified");
+    }
+
+    if (newProps.mfa && !req.sessionData?.mfa) {
+      throw new PermissionError("Permission denied (MFA)");
     }
 
     if (req.user.status == "SUSPENDED") {

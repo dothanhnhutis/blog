@@ -436,12 +436,11 @@ export type User = {
   role: Role;
   status: UserStatus;
   password: string | null;
-  firstName: string;
-  lastName: string;
+  fullName: string | null;
   birthDate: string | null;
   gender: "MALE" | "FEMALE" | "OTHER" | null;
   picture: string | null;
-  phoneNumber: string;
+  phoneNumber: string | null;
   mfa: {
     secretKey: string;
     lastAccess: Date;

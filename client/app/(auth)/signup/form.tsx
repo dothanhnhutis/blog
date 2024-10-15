@@ -16,10 +16,9 @@ import PasswordInput from "@/components/password-input";
 
 const SignUpForm = () => {
   const [formData, setFormData] = React.useState<SignUpInput>({
-    firstName: "",
-    lastName: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [focused, setFocused] = React.useState<string[]>([]);
   const [emailExist, setEmailExist] = React.useState<boolean>(false);
@@ -30,17 +29,13 @@ const SignUpForm = () => {
   };
 
   const isError = React.useCallback(
-    (field?: "firstName" | "lastName" | "email" | "password" | undefined) => {
+    (field?: "confirmPassword" | "email" | "password" | undefined) => {
       const val = signUpSchema.safeParse(formData);
       if (val.success) return [];
       switch (field) {
-        case "firstName":
+        case "confirmPassword":
           return val.error.issues.filter((err) =>
-            err.path.includes("firstName")
-          );
-        case "lastName":
-          return val.error.issues.filter((err) =>
-            err.path.includes("lastName")
+            err.path.includes("confirmPassword")
           );
         case "email":
           return val.error.issues.filter((err) => err.path.includes("email"));
@@ -62,13 +57,13 @@ const SignUpForm = () => {
       setFocused((prev) => [...prev, e.target.name]);
     }
   };
+  const [isHiddenPassword, setIsHiddenPassword] = React.useState<boolean>(true);
 
   const handleReset = (holdEmail?: boolean) => {
     setFormData((prev) => ({
-      firstName: "",
-      lastName: "",
       email: holdEmail ? prev.email : "",
       password: "",
+      confirmPassword: "",
     }));
     setFocused([]);
     setEmailExist(false);
@@ -101,63 +96,14 @@ const SignUpForm = () => {
       className="rounded-lg sm:border bg-card text-card-foreground shadow-sm p-4 sm:p-6 sm:mx-auto sm:max-w-md transition-all"
     >
       <div className="flex flex-col space-y-1.5">
-        <h3 className="font-semibold tracking-tight text-2xl">Sign Up</h3>
+        <h3 className="font-semibold tracking-tight text-2xl">Đăng ký</h3>
         <p className="text-sm text-muted-foreground">
-          Enter your information to create an account
+          Nhập email và mật khẩu để tạo tài khoản
         </p>
       </div>
 
       <div className="pt-6">
         <div className="grid gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="firstName">First name</Label>
-              <Input
-                placeholder="Max"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleOnchange}
-                className={cn(
-                  "focus-visible:ring-0",
-                  focused.includes("firstName") &&
-                    isError("firstName").length > 0
-                    ? "border-red-500"
-                    : ""
-                )}
-                onBlur={handleOnChangFocus}
-              />
-              {focused.includes("firstName") &&
-                isError("firstName").map((error, idx) => (
-                  <p key={idx} className="text-red-500 text-xs font-bold">
-                    {error.message}
-                  </p>
-                ))}
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="lastName">Last name</Label>
-              <Input
-                placeholder="Robinson"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleOnchange}
-                className={cn(
-                  "focus-visible:ring-0",
-                  focused.includes("lastName") && isError("lastName").length > 0
-                    ? "border-red-500"
-                    : ""
-                )}
-                onBlur={handleOnChangFocus}
-              />
-              {focused.includes("lastName") &&
-                isError("lastName").map((error, idx) => (
-                  <p key={idx} className="text-red-500 text-xs font-bold">
-                    {error.message}
-                  </p>
-                ))}
-            </div>
-          </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -195,12 +141,13 @@ const SignUpForm = () => {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Mật khẩu</Label>
 
             <PasswordInput
               placeholder="********"
               id="password"
               name="password"
+              autoComplete="off"
               value={formData.password}
               onChange={handleOnchange}
               onBlur={handleOnChangFocus}
@@ -209,11 +156,13 @@ const SignUpForm = () => {
                   ? "border-red-500"
                   : ""
               )}
+              open={isHiddenPassword}
+              onOpenChange={() => setIsHiddenPassword((prev) => !prev)}
             />
 
             <div className="flex flex-col gap-y-1">
               <Label className="font-normal text-xs">
-                Your password must include:
+                Mật khẩu của bạn phải bao gồm:
               </Label>
               <p
                 className={cn(
@@ -226,7 +175,7 @@ const SignUpForm = () => {
                 )}
               >
                 <AiOutlineCheck size={16} />
-                <span className="font-medium text-xs">8 to 40 characters</span>
+                <span className="font-medium text-xs">8 đến 40 ký tự</span>
               </p>
               <p
                 className={cn(
@@ -239,23 +188,49 @@ const SignUpForm = () => {
               >
                 <AiOutlineCheck size={16} />
                 <span className="font-medium text-xs">
-                  Letters, numbers and special characters
+                  Chữ cái, số và ký tự đặc biệt [@$!%*?&]
                 </span>
               </p>
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
+            <PasswordInput
+              placeholder="********"
+              id="confirmPassword"
+              name="confirmPassword"
+              autoComplete="off"
+              value={formData.confirmPassword}
+              onChange={handleOnchange}
+              onBlur={handleOnChangFocus}
+              className={cn(
+                focused.includes("confirmPassword") &&
+                  isError("confirmPassword").length > 0
+                  ? "border-red-500"
+                  : ""
+              )}
+              open={isHiddenPassword}
+              onOpenChange={setIsHiddenPassword}
+            />
+            {focused.includes("confirmPassword") &&
+              isError("confirmPassword").map((error, idx) => (
+                <p key={idx} className="font-bold text-xs text-red-500">
+                  {error.message}
+                </p>
+              ))}
           </div>
           <Button disabled={isPending} variant="default">
             {isPending && (
               <LoaderPinwheelIcon className="h-4 w-4 animate-spin flex-shrink-0 mr-2" />
             )}
-            Create an account
+            Đăng ký
           </Button>
-          <ContinueBtn label="Sign up with Google" redir="/signup" />
+          <ContinueBtn label="Đăng ký với Google" redir="/signup" />
         </div>
         <div className="mt-4 text-center text-sm">
-          Already have an account?{" "}
+          Bạn đã có tài khoản?{" "}
           <Link className="underline" href="/login">
-            Sign in
+            Đăng nhập
           </Link>
         </div>
       </div>
