@@ -21,7 +21,6 @@ export const authMiddleware =
     if (newProps.emailVerified && !req.user.emailVerified) {
       throw new PermissionError("Your email hasn't been verified");
     }
-
     if (newProps.mfa && !req.sessionData?.mfa) {
       throw new PermissionError("Permission denied (MFA)");
     }

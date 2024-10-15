@@ -22,7 +22,7 @@ export async function signIn(input: SignInInput) {
     },
   });
   if (res.success) {
-    cookies().delete("registered");
+    // cookies().delete("registered");
     for (const cookie of res.headers.getSetCookie()) {
       const parser = cookieParser(cookie);
       if (parser) {

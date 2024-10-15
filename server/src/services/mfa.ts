@@ -2,11 +2,10 @@ import prisma from "@/utils/db";
 import { Prisma } from "@prisma/client";
 
 export const mFASelectDefault: Prisma.MFASelect = {
-  id: true,
   backupCodes: true,
   secretKey: true,
   backupCodesUsed: true,
-  lastTwoFATime: true,
+  lastAccess: true,
   createdAt: true,
   updatedAt: true,
 };

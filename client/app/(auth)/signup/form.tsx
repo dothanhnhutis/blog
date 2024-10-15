@@ -128,14 +128,14 @@ const SignUpForm = () => {
               ))}
             {emailExist && (
               <p className="font-bold text-xs text-red-500">
-                This email is already in use.{" "}
+                Email này đã đăng ký.{" "}
                 <Link
                   className="text-primary text-xs"
                   href={`/login${
                     formData.email == "" ? "" : "?email=" + formData.email
                   }`}
                 >
-                  Sign in
+                  Đăng nhập
                 </Link>
               </p>
             )}

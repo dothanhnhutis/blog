@@ -62,7 +62,7 @@ model Address {
   address     String
   idDefault   Boolean
   userId      String
-  user        User    @relation(fields: [userId], references: [id])
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model OauthProvider {
@@ -114,8 +114,8 @@ model ArticleContentTag {
 model ArticleContentWithTag {
   tagName          String
   articleContentId String
-  tag              ArticleContentTag @relation(fields: [tagName], references: [tagName])
-  post             ArticleContent    @relation(fields: [articleContentId], references: [id])
+  tag              ArticleContentTag @relation(fields: [tagName], references: [tagName], onDelete: Cascade)
+  post             ArticleContent    @relation(fields: [articleContentId], references: [id], onDelete: Cascade)
 
   @@id([tagName, articleContentId])
 }
@@ -170,8 +170,8 @@ model ProductContentTag {
 model ProductContentWithTag {
   tagName          String
   productContentId String
-  tag              ProductContentTag @relation(fields: [tagName], references: [tagName])
-  product          ProductContent    @relation(fields: [productContentId], references: [id])
+  tag              ProductContentTag @relation(fields: [tagName], references: [tagName], onDelete: Cascade)
+  product          ProductContent    @relation(fields: [productContentId], references: [id], onDelete: Cascade)
 
   @@id([tagName, productContentId])
 }

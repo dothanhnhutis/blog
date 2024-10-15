@@ -10,6 +10,7 @@ import {
   deleteSession,
   deleteSessionByKey,
   getAllSession,
+  validateMFAAccess,
 } from "@/redis/session";
 import { signInWithProviderCallbackSchema } from "@/schema/auth";
 import {
@@ -18,8 +19,9 @@ import {
   EditUserReq,
   EnableMFAReq,
   SetupMFAReq,
+  ValidateSessionReq,
 } from "@/schema/user";
-import { getMFAByUserId } from "@/services/mfa";
+import { getMFAByUserId, updateBackupCodeUsedById } from "@/services/mfa";
 import { createProvider, deleteProvider } from "@/services/oauth";
 import {
   disableMFA,
@@ -28,7 +30,13 @@ import {
   getUserByEmail,
   getUserById,
 } from "@/services/user";
-import { compareData, generateOTP, hashData, randId } from "@/utils/helper";
+import {
+  compareData,
+  encrypt,
+  generateOTP,
+  hashData,
+  randId,
+} from "@/utils/helper";
 import { signJWT } from "@/utils/jwt";
 import { generateMFA, TOTPType, validateMFA } from "@/utils/mfa";
 import { emaiEnum, sendMail } from "@/utils/nodemailer";
@@ -59,6 +67,45 @@ export async function signOut(req: Request, res: Response) {
 export async function readAllSession(req: Request, res: Response) {
   const { id } = req.user!;
   res.status(StatusCodes.OK).json(await getAllSession(id));
+}
+
+export async function validateSession(
+  req: Request<{}, {}, ValidateSessionReq["body"]>,
+  res: Response
+) {
+  const { code } = req.body;
+  const { mfa, id } = req.user!;
+
+  console.log(req.sessionKey);
+  console.log(req.sessionData);
+
+  if (req.sessionData!.mfa)
+    return res.status(StatusCodes.OK).json({
+      message: "validate session success",
+    });
+
+  if (!mfa) throw new BadRequestError("mfa not active");
+
+  const mFAValidate =
+    validateMFA({
+      secret: mfa.secretKey,
+      token: code,
+    }) == 0;
+  const isBackupCode = mfa.backupCodes.includes(code);
+  const isBackupCodeUsed = mfa.backupCodesUsed.includes(code);
+
+  if (!mFAValidate) {
+    if (isBackupCodeUsed)
+      throw new BadRequestError("MFA backup codes are used");
+    if (!isBackupCode) throw new BadRequestError("Invalid MFA code");
+
+    updateBackupCodeUsedById(id, code);
+  }
+  await validateMFAAccess(req.sessionKey!, req.sessionData!);
+
+  return res.status(StatusCodes.OK).json({
+    message: "validate session success",
+  });
 }
 
 export async function removeSession(
@@ -251,7 +298,7 @@ export async function changePassword(
 }
 
 export async function sendVerifyEmail(req: Request, res: Response) {
-  const { id, emailVerified, email, firstName, lastName } = req.user!;
+  const { id, emailVerified, email, fullName } = req.user!;
   if (emailVerified) throw new BadRequestError("Verified email");
 
   const user = await getUserById(id, {
@@ -285,10 +332,9 @@ export async function sendVerifyEmail(req: Request, res: Response) {
   );
 
   await sendMail({
-    template: emaiEnum.VERIFY_EMAIL,
+    template: emaiEnum.SIGNUP,
     receiver: email!,
     locals: {
-      username: firstName + " " + lastName,
       verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
     },
   });
@@ -302,7 +348,7 @@ export async function sendChangeEmail(
   req: Request<{}, {}, ChangeEmailReq["body"]>,
   res: Response
 ) {
-  const { id, emailVerified, email, firstName, lastName } = req.user!;
+  const { id, emailVerified, email, fullName } = req.user!;
   const { email: newEmail } = req.body;
 
   if (newEmail == email)
@@ -347,10 +393,9 @@ export async function sendChangeEmail(
     );
 
     await sendMail({
-      template: emaiEnum.VERIFY_EMAIL,
+      template: emaiEnum.SIGNUP,
       receiver: newEmail,
       locals: {
-        username: firstName + " " + lastName,
         verificationLink: configs.CLIENT_URL + "/confirm-email?token=" + token,
       },
     });

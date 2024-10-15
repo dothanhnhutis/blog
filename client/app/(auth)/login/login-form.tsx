@@ -92,7 +92,10 @@ export const SignInForm = ({
       formData.password.length < 8 ||
       formData.password.length > 40
     )
-      setError({ success: false, message: "Invalid email or password." });
+      setError({
+        success: false,
+        message: "Email hoặc mật khẩu không hợp lệ.",
+      });
     mutate(formData);
   };
 

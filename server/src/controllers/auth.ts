@@ -1,5 +1,9 @@
 import configs from "@/configs";
-import { BadRequestError, NotFoundError } from "@/error-handler";
+import {
+  BadRequestError,
+  NotFoundError,
+  PermissionError,
+} from "@/error-handler";
 import { getDataCache, setDataInSecondCache } from "@/redis/cache";
 import { createSession } from "@/redis/session";
 import {
@@ -153,30 +157,7 @@ export async function signIn(
   const user = await getUserByEmail(email);
 
   if (!user || !user.password || !(await compareData(user.password, password)))
-    throw new BadRequestError("Invalid email or password");
-
-  // if (user.mfa) {
-  //   if (!mfa_code) throw new BadRequestError("MFA code is required");
-
-  //   const mFAValidate =
-  //     validateMFA({
-  //       secret: user.mfa.secretKey,
-  //       token: mfa_code,
-  //     }) == 0;
-  //   const isBackupCode = user.mfa.backupCodes.includes(mfa_code);
-  //   const isBackupCodeUsed = user.mfa.backupCodesUsed.includes(mfa_code);
-
-  //   if (!mFAValidate) {
-  //     if (isBackupCodeUsed)
-  //       throw new BadRequestError("MFA backup codes are used");
-  //     if (!isBackupCode) throw new BadRequestError("Invalid MFA code");
-
-  //     updateBackupCodeUsedById(user.id, mfa_code);
-  //   }
-  // } else {
-  //   if (mfa_code)
-  //     throw new BadRequestError("MFA code is an unrecognized key in body");
-  // }
+    throw new BadRequestError("Email hoặc mật khẩu không hợp lệ.");
 
   if (user.status == "SUSPENDED")
     throw new BadRequestError("Your account is currently closed");
@@ -207,8 +188,6 @@ export async function signIn(
       mfa: !!user.mfa,
     });
 }
-
-// export async function name(params: type) {}
 
 export async function resetPassword(
   req: Request<ResetPasswordReq["params"], {}, ResetPasswordReq["body"]>,

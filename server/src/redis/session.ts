@@ -6,6 +6,7 @@ import {
   deteleDataCache,
   getDataCache,
   getKeyByPattern,
+  setDataCache,
   setDataInMilisecondCache,
 } from "./cache";
 import configs from "@/configs";
@@ -100,6 +101,17 @@ export const sessionLastAccess = async (userId: string, sessionId: string) => {
   } catch (error: any) {
     console.log(`SessionLastAccess() method error: `, error);
   }
+};
+
+export const validateMFAAccess = async (
+  sessionKey: string,
+  sessionData: ISessionData
+) => {
+  await setDataCache(
+    sessionKey,
+    JSON.stringify({ ...sessionData, mfa: true }),
+    { keepTTL: true }
+  );
 };
 
 export const getAllSession = async (userId: string) => {

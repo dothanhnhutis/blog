@@ -46,6 +46,7 @@ function authRouter(): Router {
     validateResource(recoverAccountSchema),
     recoverAccount
   );
+
   router.post(
     "/auth/reset-password/:token",
     validateResource(resetPasswordSchema),

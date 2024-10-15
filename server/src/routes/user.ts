@@ -16,6 +16,7 @@ import {
   setupMFA,
   signOut,
   editProfile,
+  validateSession,
 } from "@/controllers/current-user";
 import { authMiddleware } from "@/middleware/requiredAuth";
 import validateResource from "@/middleware/validateResource";
@@ -27,6 +28,7 @@ import {
   filterUserSchema,
   sendChangeEmailSchema,
   setupMFASchema,
+  validateSessionSchema,
 } from "@/schema/user";
 import {
   rateLimitSendChangeEmail,
@@ -102,6 +104,12 @@ function userRouter(): Router {
     authMiddleware(),
     validateResource(sendChangeEmailSchema),
     sendChangeEmail
+  );
+  router.post(
+    "/users/sessions",
+    authMiddleware({ mfa: false }),
+    validateResource(validateSessionSchema),
+    validateSession
   );
 
   router.patch(

@@ -150,6 +150,7 @@ export const signInWithProviderCallbackSchema = z.object({
 });
 
 export type SignInReq = z.infer<typeof signinSchema>;
+
 export type SignUpReq = z.infer<typeof signupSchema>;
 export type SendVerificationEmailReq = z.infer<
   typeof sendVerificationEmailSchema
