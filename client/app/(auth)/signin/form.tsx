@@ -63,7 +63,7 @@ export const SignInForm = ({
 
   const { isPending, mutate } = useMutation({
     mutationFn: async (input: SignInInput) => {
-      return await signin(input);
+      return await signin();
 
       // return await signIn(
       //   openMFACode ? input : { email: input.email, password: input.password }
@@ -89,17 +89,19 @@ export const SignInForm = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (formData.email == "" || formData.password == "") return;
-    if (
-      !z.string().email().safeParse(formData.email).success ||
-      formData.password.length < 8 ||
-      formData.password.length > 40
-    )
-      setError({
-        success: false,
-        message: "Email hoặc mật khẩu không hợp lệ.",
-      });
-    mutate(formData);
+
+    await signin();
+    // if (formData.email == "" || formData.password == "") return;
+    // if (
+    //   !z.string().email().safeParse(formData.email).success ||
+    //   formData.password.length < 8 ||
+    //   formData.password.length > 40
+    // )
+    //   setError({
+    //     success: false,
+    //     message: "Email hoặc mật khẩu không hợp lệ.",
+    //   });
+    // mutate(formData);
   };
 
   const handleReActivate = async () => {

@@ -4,56 +4,46 @@ export type FetchHttpOption = RequestInit & {
   baseUrl?: string;
 };
 
-export interface ResponseData<T> {
+export type FetchErrorData<T> = {
   statusCode: number;
   headers: Headers;
   data: T;
-}
+};
 
-export class ErrorResponse<T> extends Error {
+export class FetchError<T> extends Error {
   private headers: Headers;
   private statusCode: number;
   private data: T;
 
-  constructor(props: ResponseData<T>) {
-    super(
-      typeof props.data == "string"
-        ? props.data
-        : typeof props.data == "object"
-        ? props.data != null &&
-          "message" in props.data &&
-          typeof props.data.message == "string"
-          ? props.data.message
-          : ""
-        : ""
-    );
-    this.headers = props.headers;
-    this.statusCode = props.statusCode;
-    this.data = props.data;
+  constructor({ headers, statusCode, data }: FetchErrorData<T>) {
+    super("");
+    this.headers = headers;
+    this.statusCode = statusCode;
+    this.data = data;
   }
 
-  serialize(): ResponseData<T> {
+  serialize(): FetchErrorData<T> {
     return {
       headers: this.headers,
-      data: this.data,
       statusCode: this.statusCode,
+      data: this.data,
     };
   }
 }
 
-async function fetchHttp<Success, Error>(
+async function fetchHttp<S, E>(
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   url: string,
   options?: FetchHttpOption
 ) {
-  const body = options?.body ? JSON.stringify(options?.body) : undefined;
+  const body = options?.body ? JSON.stringify(options.body) : undefined;
 
   const baseHeaders = {
     "Content-Type": "application/json",
   };
+
   const baseUrl =
     options?.baseUrl || configs.NEXT_PUBLIC_SERVER_URL + "/api/v1";
-
   const fullUrl = url.startsWith("/")
     ? `${baseUrl}${url}`
     : `${baseUrl}/${url}`;
@@ -69,14 +59,15 @@ async function fetchHttp<Success, Error>(
   });
 
   if (!res.ok) {
-    const data: Error = await res.json();
-    throw new ErrorResponse({
+    const data = (await res.json()) as E;
+    throw new FetchError({
       headers: res.headers,
       statusCode: res.status,
       data,
     });
   }
-  const data: Success = await res.json();
+
+  const data = (await res.json()) as S;
   return {
     statusCode: res.status,
     headers: res.headers,
@@ -84,24 +75,57 @@ async function fetchHttp<Success, Error>(
   };
 }
 
+export const getErrorMessage = (error: unknown): string => {
+  let message: string;
+  if (error instanceof FetchError) {
+    message = "error.serialize().data";
+  } else if (error instanceof TypeError) {
+    message = error.message;
+  } else if (
+    error &&
+    typeof error == "object" &&
+    "message" in error &&
+    typeof error.message == "string"
+  ) {
+    message = error.message;
+  } else {
+    message = "Something went wrong";
+  }
+  return message;
+};
+
 export const http = {
-  get<S = any, E = any>(url: string, options?: Omit<FetchHttpOption, "body">) {
-    return fetchHttp<S, E>("GET", url, options);
+  async get<S = unknown, E = unknown>(
+    url: string,
+    options?: Omit<FetchHttpOption, "body">
+  ) {
+    return await fetchHttp<S, E>("GET", url, options);
   },
-  post<S = unknown, E = unknown>(
+  async post<S = unknown, E = unknown>(
     url: string,
     body: any,
     options?: FetchHttpOption
   ) {
-    return fetchHttp<S, E>("POST", url, { ...options, body });
+    return await fetchHttp<S, E>("POST", url, { ...options, body });
   },
-  patch<S, E>(url: string, body: any, options?: FetchHttpOption) {
+  patch<S = unknown, E = unknown>(
+    url: string,
+    body: any,
+    options?: FetchHttpOption
+  ) {
     return fetchHttp<S, E>("PATCH", url, { ...options, body });
   },
-  put<S, E>(url: string, body: any, options?: FetchHttpOption) {
+  put<S = unknown, E = unknown>(
+    url: string,
+    body: any,
+    options?: FetchHttpOption
+  ) {
     return fetchHttp<S, E>("PUT", url, { ...options, body });
   },
-  delete<S, E>(url: string, options?: Omit<FetchHttpOption, "body">) {
-    return fetchHttp<S, E>("DELETE", url, { ...options });
+  delete<S = unknown, E = unknown>(
+    url: string,
+    options?: Omit<FetchHttpOption, "body">
+  ) {
+    return fetchHttp<S, E>("DELETE", url, options);
   },
 };
