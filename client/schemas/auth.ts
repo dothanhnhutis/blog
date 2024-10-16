@@ -3,20 +3,14 @@ import { z } from "zod";
 export const signInSchema = z.object({
   email: z
     .string({
-      required_error: "Email is required",
-      invalid_type_error: "Email must be string",
+      required_error: "Email là bắt buộc",
+      invalid_type_error: "Email phải là chuỗi",
     })
-    .email("Invalid email"),
+    .email("Email không hợp lệ"),
   password: z.string({
-    required_error: "Password is required",
-    invalid_type_error: "Password must be string",
+    required_error: "Password là bắt buộc",
+    invalid_type_error: "Password phải là chuỗi",
   }),
-  mfa_code: z
-    .string({
-      required_error: "mfa_code is required",
-      invalid_type_error: "mfa_code must be string",
-    })
-    .optional(),
 });
 
 export const signUpSchema = z

@@ -1,27 +1,38 @@
 import configs from "@/config";
 
-type FetchHttpOption = RequestInit & {
+export type FetchHttpOption = RequestInit & {
   baseUrl?: string;
 };
 
-export interface IError {
+export interface ResponseData<T> {
   statusCode: number;
   headers: Headers;
-  data: { message: string };
+  data: T;
 }
 
-export class FetchHttpError extends Error {
+export class ErrorResponse<T> extends Error {
   private headers: Headers;
   private statusCode: number;
-  private data: { message: string };
-  constructor(props: IError) {
-    super(props.data.message);
+  private data: T;
+
+  constructor(props: ResponseData<T>) {
+    super(
+      typeof props.data == "string"
+        ? props.data
+        : typeof props.data == "object"
+        ? props.data != null &&
+          "message" in props.data &&
+          typeof props.data.message == "string"
+          ? props.data.message
+          : ""
+        : ""
+    );
     this.headers = props.headers;
     this.statusCode = props.statusCode;
     this.data = props.data;
   }
 
-  serialize(): IError {
+  serialize(): ResponseData<T> {
     return {
       headers: this.headers,
       data: this.data,
@@ -30,12 +41,13 @@ export class FetchHttpError extends Error {
   }
 }
 
-async function fetchHttp<ResponseData>(
+async function fetchHttp<Success, Error>(
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   url: string,
   options?: FetchHttpOption
 ) {
   const body = options?.body ? JSON.stringify(options?.body) : undefined;
+
   const baseHeaders = {
     "Content-Type": "application/json",
   };
@@ -55,15 +67,16 @@ async function fetchHttp<ResponseData>(
     body,
     method,
   });
+
   if (!res.ok) {
-    const { message }: { message: string } = await res.json();
-    throw new FetchHttpError({
+    const data: Error = await res.json();
+    throw new ErrorResponse({
       headers: res.headers,
       statusCode: res.status,
-      data: { message },
+      data,
     });
   }
-  const data: ResponseData = await res.json();
+  const data: Success = await res.json();
   return {
     statusCode: res.status,
     headers: res.headers,
@@ -72,19 +85,23 @@ async function fetchHttp<ResponseData>(
 }
 
 export const http = {
-  get<ResponseData>(url: string, options?: Omit<FetchHttpOption, "body">) {
-    return fetchHttp<ResponseData>("GET", url, options);
+  get<S = any, E = any>(url: string, options?: Omit<FetchHttpOption, "body">) {
+    return fetchHttp<S, E>("GET", url, options);
   },
-  post<ResponseData>(url: string, body: any, options?: FetchHttpOption) {
-    return fetchHttp<ResponseData>("POST", url, { ...options, body });
+  post<S = unknown, E = unknown>(
+    url: string,
+    body: any,
+    options?: FetchHttpOption
+  ) {
+    return fetchHttp<S, E>("POST", url, { ...options, body });
   },
-  patch<ResponseData>(url: string, body: any, options?: FetchHttpOption) {
-    return fetchHttp<ResponseData>("PATCH", url, { ...options, body });
+  patch<S, E>(url: string, body: any, options?: FetchHttpOption) {
+    return fetchHttp<S, E>("PATCH", url, { ...options, body });
   },
-  put<ResponseData>(url: string, body: any, options?: FetchHttpOption) {
-    return fetchHttp<ResponseData>("PUT", url, { ...options, body });
+  put<S, E>(url: string, body: any, options?: FetchHttpOption) {
+    return fetchHttp<S, E>("PUT", url, { ...options, body });
   },
-  delete<ResponseData>(url: string, options?: Omit<FetchHttpOption, "body">) {
-    return fetchHttp<ResponseData>("DELETE", url, { ...options });
+  delete<S, E>(url: string, options?: Omit<FetchHttpOption, "body">) {
+    return fetchHttp<S, E>("DELETE", url, { ...options });
   },
 };

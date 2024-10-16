@@ -13,6 +13,7 @@ import { useMutation } from "@tanstack/react-query";
 import { clearEmailRegistered, reActivateAccount, signIn } from "../actions";
 import { useRouter } from "next/navigation";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
+import { signin } from "@/service/auth";
 
 export const SignInForm = ({
   oauth_error,
@@ -28,7 +29,6 @@ export const SignInForm = ({
   const [formData, setFormData] = React.useState<SignInInput>({
     email: email || "",
     password: "",
-    mfa_code: "",
   });
 
   const [openMFACode, setOpenMFACode] = React.useState<boolean>(false);
@@ -63,9 +63,11 @@ export const SignInForm = ({
 
   const { isPending, mutate } = useMutation({
     mutationFn: async (input: SignInInput) => {
-      return await signIn(
-        openMFACode ? input : { email: input.email, password: input.password }
-      );
+      return await signin(input);
+
+      // return await signIn(
+      //   openMFACode ? input : { email: input.email, password: input.password }
+      // );
     },
     onSuccess({ success, data }) {
       if (!success) {
@@ -82,6 +84,7 @@ export const SignInForm = ({
         router.push(DEFAULT_LOGIN_REDIRECT);
       }
     },
+    onError(error, variables, context) {},
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -237,7 +240,7 @@ export const SignInForm = ({
                   name="mfa_code"
                   placeholder="MFA code"
                   onChange={handleOnchange}
-                  value={formData.mfa_code}
+                  // value={formData.mfa_code}
                 />
               </div>
 

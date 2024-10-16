@@ -1,5 +1,5 @@
 import React from "react";
-import { SignInForm } from "./login-form";
+import { SignInForm } from "./form";
 import { cookies } from "next/headers";
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
