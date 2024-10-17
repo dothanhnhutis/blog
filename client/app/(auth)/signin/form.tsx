@@ -87,8 +87,8 @@ export const SignInForm = ({
       //   openMFACode ? input : { email: input.email, password: input.password }
       // );
     },
-    onSuccess() {
-      // console.log(data);
+    onSuccess({ data, headers }) {
+      console.log(headers);
       // if (!success) {
       //   if (data.message == "Your account is currently closed") {
       //     handleReset(true);
