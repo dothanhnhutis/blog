@@ -64,11 +64,11 @@ export const SignInForm = ({
 
   const { isPending, mutate } = useMutation({
     mutationFn: async (input: SignInInput) => {
-      return await axios.post<{ message: string }, {}, SignInInput>(
+      return await axios.post<{ message: string }>(
         "http://localhost:4000/api/v1/auth/signin",
         {
           email: "gaconght@gmail.com",
-          password: "@Abc123123",
+          password: "@Abc1231233",
         }
       );
 
