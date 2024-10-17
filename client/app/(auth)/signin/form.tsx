@@ -13,8 +13,9 @@ import { useMutation } from "@tanstack/react-query";
 import { clearEmailRegistered, reActivateAccount, signIn } from "../actions";
 import { useRouter } from "next/navigation";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
-import { post, signin } from "@/service/auth";
+// import { post, signin } from "@/service/auth";
 import axios from "axios";
+import { FetchError, http } from "@/service/http";
 export const SignInForm = ({
   oauth_error,
   email,
@@ -63,41 +64,6 @@ export const SignInForm = ({
 
   const { isPending, mutate } = useMutation({
     mutationFn: async (input: SignInInput) => {
-      // return await post<{ message: string; mfa: boolean }, { a: string }>(
-      //   "/auth/signin",
-      //   {
-      //     email: "gaconght@gmail.com",
-      //     password: "@Abc123123",
-      //   }
-      // );
-
-      // const res = await fetch("http://localhost:4000/api/v1/auth/signin", {
-      //   body: JSON.stringify({
-      //     email: "gaconght@gmail.com",
-      //     password: "@Abc123123",
-      //   }),
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   method: "POST",
-      // });
-
-      // if (!res.ok) {
-      //   const data = (await res.json()) as {
-      //     message: string;
-      //   };
-      //   throw new Error(data.message);
-      // }
-      // const data = (await res.json()) as {
-      //   message: string;
-      //   mfa: boolean;
-      // };
-      // return {
-      //   statusCode: res.status,
-      //   headers: res.headers,
-      //   data,
-      // };
-
       return await axios.post<{ message: string }, {}, SignInInput>(
         "http://localhost:4000/api/v1/auth/signin",
         {
@@ -106,12 +72,23 @@ export const SignInForm = ({
         }
       );
 
+      // return await http.post<{ message: string; mfa: string }>(
+      //   "/auth/signin",
+      //   {
+      //     email: "gaconght@gmail.com",
+      //     password: "@Abc12312311",
+      //   },
+      //   {
+      //     credentials: "include",
+      //   }
+      // );
+
       // return await signIn(
       //   openMFACode ? input : { email: input.email, password: input.password }
       // );
     },
-    onSuccess({ data }) {
-      console.log(data);
+    onSuccess() {
+      // console.log(data);
       // if (!success) {
       //   if (data.message == "Your account is currently closed") {
       //     handleReset(true);
@@ -127,6 +104,10 @@ export const SignInForm = ({
       // }
     },
     onError(error, variables, context) {
+      // if (error instanceof FetchError) {
+      //   console.log("FetchError");
+      // }
+      // console.log(error.message);
       console.log(error);
     },
   });
