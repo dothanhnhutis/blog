@@ -11,13 +11,15 @@ import {
   signInWithProvider,
   signUp,
   verifyEmail,
+  signInWithMFA,
 } from "@/controllers/auth";
 import validateResource from "@/middleware/validateResource";
 import {
   recoverAccountSchema,
   resetPasswordSchema,
   sendReActivateAccountSchema,
-  signinSchema,
+  signInSchema,
+  signInWithMFASchema,
   signupSchema,
 } from "@/schema/auth";
 import {
@@ -38,8 +40,13 @@ function authRouter(): Router {
   router.get("/auth/reactivate/:token", reActivateAccount);
 
   router.post("/auth/signup", validateResource(signupSchema), signUp);
+  router.post(
+    "/auth/signin/mfa",
+    validateResource(signInWithMFASchema),
+    signInWithMFA
+  );
 
-  router.post("/auth/signin", validateResource(signinSchema), signIn);
+  router.post("/auth/signin", validateResource(signInSchema), signIn);
   router.post(
     "/auth/recover",
     rateLimitRecover,

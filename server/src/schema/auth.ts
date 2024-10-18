@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const signinSchema = z.object({
+export const signInSchema = z.object({
   body: z
     .object({
       email: z
@@ -16,6 +16,23 @@ export const signinSchema = z.object({
         })
         .min(8, "invalid email or password")
         .max(40, "invalid email or password"),
+    })
+    .strict(),
+});
+
+export const signInWithMFASchema = z.object({
+  body: z
+    .object({
+      sessionId: z.string({
+        required_error: "sessionId is required",
+        invalid_type_error: "sessionId must be string",
+      }),
+      code: z
+        .string({
+          required_error: "code is required",
+          invalid_type_error: "code must be string",
+        })
+        .length(6, "invalid code"),
     })
     .strict(),
 });
@@ -149,8 +166,8 @@ export const signInWithProviderCallbackSchema = z.object({
   ]),
 });
 
-export type SignInReq = z.infer<typeof signinSchema>;
-
+export type SignInReq = z.infer<typeof signInSchema>;
+export type SignInWithMFAReq = z.infer<typeof signInWithMFASchema>;
 export type SignUpReq = z.infer<typeof signupSchema>;
 export type SendVerificationEmailReq = z.infer<
   typeof sendVerificationEmailSchema

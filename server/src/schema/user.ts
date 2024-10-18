@@ -417,17 +417,6 @@ export const filterUserSchema = z.object({
   body: filterUserBodySchema,
 });
 
-export const validateSessionSchema = z.object({
-  body: z.object({
-    code: z
-      .string({
-        required_error: "code is required",
-        invalid_type_error: "code must be string",
-      })
-      .length(6, "invalid code"),
-  }),
-});
-
 export type SetupMFAReq = z.infer<typeof setupMFASchema>;
 export type EnableMFAReq = z.infer<typeof enableMFASchema>;
 export type ChangePasswordReq = z.infer<typeof changePasswordSchema>;
@@ -436,7 +425,6 @@ export type ChangeEmailReq = z.infer<typeof changeEmailSchema>;
 export type EditUserReq = z.infer<typeof editUserSchema>;
 export type CreateUserReq = z.infer<typeof createUserSchema>;
 export type FilterUserReq = z.infer<typeof filterUserSchema>;
-export type ValidateSessionReq = z.infer<typeof validateSessionSchema>;
 
 type Role = "SUPER_ADMIN" | "ADMIN" | "BUSINESS_PARTNER" | "CUSTOMER";
 type UserStatus = "ACTIVE" | "SUSPENDED" | "DISABLED";

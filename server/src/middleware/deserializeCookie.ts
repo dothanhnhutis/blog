@@ -1,8 +1,8 @@
 import { RequestHandler as Middleware } from "express";
 import cookie from "cookie";
 import configs from "@/configs";
-import { getSession, ISessionData } from "@/redis/session";
-import { decrypt } from "@/utils/helper";
+import { getSession, ISessionData, sessionLastAccess } from "@/redis/session";
+import { decrypt, encrypt } from "@/utils/helper";
 import { PermissionError } from "@/error-handler";
 
 declare global {
@@ -24,10 +24,22 @@ const deserializeCookie: Middleware = async (req, res, next) => {
     res.clearCookie(configs.SESSION_KEY_NAME);
     return next();
   }
+
   req.sessionData = await getSession(req.sessionKey);
   if (!req.sessionData) {
     res.clearCookie(configs.SESSION_KEY_NAME);
     return next();
+  }
+
+  const newSession = await sessionLastAccess(req.sessionKey);
+  if (newSession) {
+    res.cookie(
+      configs.SESSION_KEY_NAME,
+      encrypt(req.sessionKey, configs.SESSION_SECRET),
+      {
+        ...newSession.cookie,
+      }
+    );
   }
   return next();
 };

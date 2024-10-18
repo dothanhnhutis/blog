@@ -6,10 +6,12 @@ import {
   setDataCache,
   setDataInSecondCache,
 } from "@/redis/cache";
+import { generateMFASetup, getMFASetup } from "@/redis/mfa";
 import {
   deleteSession,
   deleteSessionByKey,
   getAllSession,
+  updateSessionData,
 } from "@/redis/session";
 import { signInWithProviderCallbackSchema } from "@/schema/auth";
 import {
@@ -18,9 +20,7 @@ import {
   EditUserReq,
   EnableMFAReq,
   SetupMFAReq,
-  ValidateSessionReq,
 } from "@/schema/user";
-import { getMFAByUserId, updateBackupCodeUsedById } from "@/services/mfa";
 import { createProvider, deleteProvider } from "@/services/oauth";
 import {
   disableMFA,
@@ -29,15 +29,9 @@ import {
   getUserByEmail,
   getUserById,
 } from "@/services/user";
-import {
-  compareData,
-  encrypt,
-  generateOTP,
-  hashData,
-  randId,
-} from "@/utils/helper";
+import { compareData, generateOTP, hashData, randId } from "@/utils/helper";
 import { signJWT } from "@/utils/jwt";
-import { generateMFA, TOTPType, validateMFA } from "@/utils/mfa";
+import { validateMFA } from "@/utils/mfa";
 import { emaiEnum, sendMail } from "@/utils/nodemailer";
 import { generateUrlOauth2, getUserProfile } from "@/utils/oauth";
 import { Request, Response } from "express";
@@ -45,9 +39,11 @@ import { StatusCodes } from "http-status-codes";
 import qrcode from "qrcode";
 
 export function currentUser(req: Request, res: Response) {
-  const { password, ...props } = req.user!;
+  const {
+    user: { password, ...rest },
+  } = req.sessionData!;
   res.status(StatusCodes.OK).json({
-    ...props,
+    ...rest,
     hasPassword: !!password,
   });
 }
@@ -64,57 +60,33 @@ export async function signOut(req: Request, res: Response) {
 }
 
 export async function readAllSession(req: Request, res: Response) {
-  const { id } = req.user!;
-  res.status(StatusCodes.OK).json(await getAllSession(id));
-}
-
-export async function validateSession(
-  req: Request<{}, {}, ValidateSessionReq["body"]>,
-  res: Response
-) {
-  const { code } = req.body;
-  const { mfa, id } = req.user!;
-
-  console.log(req.sessionKey);
-  console.log(req.sessionData);
-
-  if (req.sessionData!.mfa)
-    return res.status(StatusCodes.OK).json({
-      message: "validate session success",
-    });
-
-  if (!mfa) throw new BadRequestError("mfa not active");
-
-  const mFAValidate =
-    validateMFA({
-      secret: mfa.secretKey,
-      token: code,
-    }) == 0;
-  const isBackupCode = mfa.backupCodes.includes(code);
-  const isBackupCodeUsed = mfa.backupCodesUsed.includes(code);
-
-  if (!mFAValidate) {
-    if (isBackupCodeUsed)
-      throw new BadRequestError("MFA backup codes are used");
-    if (!isBackupCode) throw new BadRequestError("Invalid MFA code");
-
-    updateBackupCodeUsedById(id, code);
-  }
-  await validateMFAAccess(req.sessionKey!, req.sessionData!);
-
-  return res.status(StatusCodes.OK).json({
-    message: "validate session success",
-  });
+  const { user } = req.sessionData!;
+  const sessions = await getAllSession(user.id);
+  res.status(StatusCodes.OK).json(
+    sessions.map((s) => {
+      const {
+        user: { password, ...noPass },
+        ...rest
+      } = s;
+      return {
+        ...rest,
+        user: {
+          ...noPass,
+          hasPassword: !!password,
+        },
+      };
+    })
+  );
 }
 
 export async function removeSession(
   req: Request<{ sessionId: string }>,
   res: Response
 ) {
-  const { id, userId } = req.sessionData!;
+  const { id, user } = req.sessionData!;
   if (id == req.params.sessionId)
     throw new BadRequestError("Cannot delete current session");
-  await deleteSession(userId, req.params.sessionId);
+  await deleteSession(user.id, req.params.sessionId);
   res.status(StatusCodes.OK).json({
     message: "delete session success",
   });
@@ -135,49 +107,20 @@ export async function setupMFA(
   req: Request<{}, {}, SetupMFAReq["body"]>,
   res: Response
 ) {
-  const { id, mfa } = req.user!;
+  const {
+    user: { id, mfa },
+  } = req.sessionData!;
   const { deviceName } = req.body;
   if (mfa)
     throw new BadRequestError(
       "Multi-factor authentication (MFA) has been enabled"
     );
 
-  let backupCodes: string[], totp: TOTPType;
-  const totpData = await getDataCache(`${id}:mfa`);
-
-  if (!totpData) {
-    backupCodes = Array.from({ length: 10 }).map(() => generateOTP());
-    totp = generateMFA(deviceName);
-
-    await setDataInSecondCache(
-      `${id}:mfa`,
-      JSON.stringify({
-        backupCodes,
-        totp,
-      }),
-      60 * 60
-    );
-  } else {
-    const mfaCookie = JSON.parse(totpData) as {
-      backupCodes: string[];
-      totp: TOTPType;
-    };
-
-    backupCodes = mfaCookie.backupCodes;
-    totp = generateMFA(deviceName, mfaCookie.totp.base32);
-    await setDataCache(
-      `${id}:mfa`,
-      JSON.stringify({
-        backupCodes,
-        totp,
-      }),
-      { keepTTL: true }
-    );
-  }
+  const { totp, backupCodes } = await generateMFASetup(id, deviceName);
 
   qrcode.toDataURL(totp.oauth_url, async (err, imageUrl) => {
     if (err) {
-      deteleDataCache(`${id}:mfa`);
+      deteleDataCache(`mfasetup:${id}`);
       throw new BadRequestError("Failed to generate QR code.");
     }
 
@@ -196,59 +139,59 @@ export async function enableMFAAccount(
   req: Request<{}, {}, EnableMFAReq["body"]>,
   res: Response
 ) {
-  const { id, mfa } = req.user!;
+  const {
+    user: { id, mfa },
+  } = req.sessionData!;
   const { mfa_code1, mfa_code2 } = req.body;
 
   if (mfa)
     throw new BadRequestError(
       "Multi-factor authentication (MFA) has been enabled"
     );
-  const totpInfo = await getDataCache(`${id}:mfa`);
-  if (!totpInfo)
+  const totpData = await getMFASetup(id);
+  if (!totpData)
     throw new BadRequestError(
       "The multi-factor authentication (MFA) code has expired"
     );
 
-  const { backupCodes, totp } = JSON.parse(totpInfo) as {
-    backupCodes: string[];
-    totp: TOTPType;
-  };
-
   if (
-    validateMFA({ secret: totp.base32, token: mfa_code1 }) == null ||
-    validateMFA({ secret: totp.base32, token: mfa_code2 }) == null
+    validateMFA({ secret: totpData.totp.base32, token: mfa_code1 }) == null ||
+    validateMFA({ secret: totpData.totp.base32, token: mfa_code2 }) == null
   )
     throw new BadRequestError("Invalid MFA code");
 
-  await enableMFA(id, { secretKey: totp.base32, backupCodes });
+  const newMFA = await enableMFA(id, {
+    secretKey: totpData.totp.base32,
+    backupCodes: totpData.backupCodes,
+  });
+  await updateSessionData(req.sessionKey!, { mfa: newMFA });
+  await deteleDataCache(`mfasetup:${id}`);
 
   res.status(StatusCodes.OK).json({
     message: "Multi-factor authentication (MFA) is enable",
     data: {
-      backupCodes,
+      backupCodes: totpData.backupCodes,
     },
   });
 }
 
 export async function disableMFAAccount(req: Request, res: Response) {
-  const { id, mfa } = req.user!;
+  const {
+    user: { id, mfa },
+  } = req.sessionData!;
   const { mfa_code1, mfa_code2 } = req.body;
 
   if (!mfa)
     throw new BadRequestError(
       "Multi-factor authentication (MFA) has been disable"
     );
-  const totp = await getMFAByUserId(id);
-  if (!totp)
-    throw new BadRequestError(
-      "Multi-factor authentication (MFA) has been disable"
-    );
   if (
-    validateMFA({ secret: totp.secretKey, token: mfa_code1 }) == null ||
-    validateMFA({ secret: totp.secretKey, token: mfa_code2 }) == null
+    validateMFA({ secret: mfa.secretKey, token: mfa_code1 }) == null ||
+    validateMFA({ secret: mfa.secretKey, token: mfa_code2 }) == null
   )
     throw new BadRequestError("Invalid MFA code");
   await disableMFA(id);
+  await updateSessionData(req.sessionKey!, { mfa: null });
 
   return res
     .status(StatusCodes.OK)

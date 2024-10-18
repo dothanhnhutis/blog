@@ -16,7 +16,7 @@ declare global {
 const deserializeUser: Middleware = async (req, res, next) => {
   if (!req.sessionData || !req.sessionKey) return next();
 
-  req.user = await getUserById(req.sessionData.userId, {
+  req.user = await getUserById(req.sessionData.user.id, {
     oauthProviders: {
       select: {
         provider: true,
@@ -26,7 +26,7 @@ const deserializeUser: Middleware = async (req, res, next) => {
   });
 
   if (req.user) {
-    const newSession = await sessionLastAccess(req.user.id, req.sessionData.id);
+    const newSession = await sessionLastAccess(req.sessionKey);
     if (newSession) {
       res.cookie(
         configs.SESSION_KEY_NAME,

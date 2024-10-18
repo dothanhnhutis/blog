@@ -476,11 +476,19 @@ export async function enableMFA(
     backupCodes: string[];
   }
 ) {
-  await prisma.mFA.create({
+  return await prisma.mFA.create({
     data: {
       userId: id,
       backupCodes: input.backupCodes,
       secretKey: input.secretKey,
+    },
+    select: {
+      backupCodes: true,
+      backupCodesUsed: true,
+      lastAccess: true,
+      secretKey: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
 }

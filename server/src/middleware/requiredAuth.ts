@@ -3,32 +3,27 @@ import { NotAuthorizedError, PermissionError } from "../error-handler";
 
 type TAuthMiddleware = {
   emailVerified: boolean;
-  mfa: boolean;
 };
 
 export const authMiddleware =
   (props?: Partial<TAuthMiddleware>): Middleware =>
   async (req, _, next) => {
-    if (!req.user) {
+    if (!req.sessionData) {
       throw new NotAuthorizedError();
     }
     const newProps: TAuthMiddleware = {
       emailVerified: true,
-      mfa: true,
       ...props,
     };
 
-    if (newProps.emailVerified && !req.user.emailVerified) {
+    if (newProps.emailVerified && !req.sessionData.user.emailVerified) {
       throw new PermissionError("Your email hasn't been verified");
     }
-    if (newProps.mfa && !req.sessionData?.mfa) {
-      throw new PermissionError("Permission denied (MFA)");
-    }
 
-    if (req.user.status == "SUSPENDED") {
+    if (req.sessionData.user.status == "SUSPENDED") {
       throw new PermissionError("Your account has been suspended.");
     }
-    if (req.user.status == "DISABLED") {
+    if (req.sessionData.user.status == "DISABLED") {
       throw new PermissionError(
         "Your account has been disabled. Please contact your administrator to restore your account"
       );

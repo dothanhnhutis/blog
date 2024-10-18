@@ -5,13 +5,15 @@ import {
   PermissionError,
 } from "@/error-handler";
 import { getDataCache, setDataInSecondCache } from "@/redis/cache";
-import { createMFASession, createSession } from "@/redis/session";
+import { createMFASession, getMFASession } from "@/redis/mfa";
+import { createSession, updateSessionData } from "@/redis/session";
 import {
   RecoverAccountReq,
   ResetPasswordReq,
   SendReActivateAccountReq,
   SendVerificationEmailReq,
   SignInReq,
+  SignInWithMFAReq,
   signInWithProviderCallbackSchema,
   SignUpReq,
 } from "@/schema/auth";
@@ -186,13 +188,57 @@ export async function signIn(
         message: "Sign in success",
       });
   } else {
-    const mfaId = await createMFASession(user.mfa);
-
+    const sessionId = await createMFASession(user);
     return res.status(StatusCodes.OK).json({
       message: "Sign in success",
-      mfaId,
+      sessionId,
     });
   }
+}
+
+export async function signInWithMFA(
+  req: Request<{}, {}, SignInWithMFAReq["body"]>,
+  res: Response
+) {
+  const { sessionId, code } = req.body;
+  const user = await getMFASession(sessionId);
+
+  if (!user) throw new BadRequestError("Invalid MFA code");
+  if (!user.mfa) throw new BadRequestError("mfa not active");
+
+  const mfaValidate =
+    validateMFA({
+      secret: user.mfa.secretKey,
+      token: code,
+    }) == 0;
+  const isBackupCode = user.mfa.backupCodes.includes(code);
+  const isBackupCodeUsed = user.mfa.backupCodesUsed.includes(code);
+
+  if (!mfaValidate) {
+    if (isBackupCodeUsed)
+      throw new BadRequestError("MFA backup codes are used");
+    if (!isBackupCode) throw new BadRequestError("Invalid MFA code");
+  }
+  const mfa = await updateBackupCodeUsedById(user.id, code);
+  await updateSessionData(req.sessionKey!, { mfa });
+
+  const { sessionKey, cookieOpt } = await createSession({
+    user,
+    reqIp: req.ip || "",
+    userAgent: req.headers["user-agent"] || "",
+  });
+  return res
+    .status(StatusCodes.OK)
+    .cookie(
+      configs.SESSION_KEY_NAME,
+      encrypt(sessionKey, configs.SESSION_SECRET),
+      {
+        ...cookieOpt,
+      }
+    )
+    .json({
+      message: "Sign in success",
+    });
 }
 
 export async function resetPassword(
@@ -393,8 +439,7 @@ export async function signInWithProviderCallBack(
   }
 
   const { sessionKey, cookieOpt } = await createSession({
-    userId: user.id,
-    mfa: true,
+    user: user,
     reqIp: req.ip || "",
     userAgent: req.headers["user-agent"] || "",
   });

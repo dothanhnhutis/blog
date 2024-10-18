@@ -36,6 +36,6 @@ export async function setDataInSecondCache(
   await redisClient.set(key, val, "EX", seconds);
 }
 
-export async function deteleDataCache(key: string): Promise<void> {
+export async function deteleDataCache(...key: string[]): Promise<void> {
   await redisClient.del(key);
 }

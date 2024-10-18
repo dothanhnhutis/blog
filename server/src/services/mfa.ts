@@ -28,13 +28,3 @@ export async function updateBackupCodeUsedById(
     }),
   });
 }
-
-export async function getMFAByUserId(id: string, select?: Prisma.MFASelect) {
-  return await prisma.mFA.findUnique({
-    where: { userId: id },
-    select: Prisma.validator<Prisma.MFASelect>()({
-      ...mFASelectDefault,
-      ...select,
-    }),
-  });
-}
