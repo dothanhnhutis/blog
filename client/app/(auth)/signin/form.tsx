@@ -13,9 +13,8 @@ import { useMutation } from "@tanstack/react-query";
 import { clearEmailRegistered, reActivateAccount, signIn } from "../actions";
 import { useRouter } from "next/navigation";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
-// import { post, signin } from "@/service/auth";
-import axios from "axios";
-import { FetchError, http } from "@/service/http";
+import http from "@/service/http";
+import { isFetchApiError } from "@/service/fetch-api";
 export const SignInForm = ({
   oauth_error,
   email,
@@ -64,31 +63,22 @@ export const SignInForm = ({
 
   const { isPending, mutate } = useMutation({
     mutationFn: async (input: SignInInput) => {
-      return await axios.post<{ message: string }>(
-        "http://localhost:4000/api/v1/auth/signin",
-        {
-          email: "gaconght@gmail.com",
-          password: "@Abc1231233",
-        }
+      return await http.post<{ message: string; mfa: boolean }, SignInInput>(
+        "/auth/signin",
+        input
       );
-
-      // return await http.post<{ message: string; mfa: string }>(
-      //   "/auth/signin",
-      //   {
-      //     email: "gaconght@gmail.com",
-      //     password: "@Abc12312311",
-      //   },
-      //   {
-      //     credentials: "include",
-      //   }
-      // );
-
-      // return await signIn(
+      // await signIn(
       //   openMFACode ? input : { email: input.email, password: input.password }
       // );
     },
-    onSuccess({ data, headers }) {
-      console.log(headers);
+    onSuccess({ data }) {
+      console.log(data);
+      if (data.mfa) {
+        setOpenMFACode(true);
+      } else {
+        router.push(DEFAULT_LOGIN_REDIRECT);
+      }
+
       // if (!success) {
       //   if (data.message == "Your account is currently closed") {
       //     handleReset(true);
@@ -103,29 +93,27 @@ export const SignInForm = ({
       //   router.push(DEFAULT_LOGIN_REDIRECT);
       // }
     },
-    onError(error, variables, context) {
-      // if (error instanceof FetchError) {
-      //   console.log("FetchError");
-      // }
-      // console.log(error.message);
-      console.log(error);
+    onError(error) {
+      if (isFetchApiError(error)) {
+        handleReset();
+        setError({ success: false, message: error.response?.data.message });
+      }
     },
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // return await signin();
-    // if (formData.email == "" || formData.password == "") return;
-    // if (
-    //   !z.string().email().safeParse(formData.email).success ||
-    //   formData.password.length < 8 ||
-    //   formData.password.length > 40
-    // )
-    //   setError({
-    //     success: false,
-    //     message: "Email hoặc mật khẩu không hợp lệ.",
-    //   });
+    if (formData.email == "" || formData.password == "") return;
+    if (
+      !z.string().email().safeParse(formData.email).success ||
+      formData.password.length < 8 ||
+      formData.password.length > 40
+    )
+      setError({
+        success: false,
+        message: "Email hoặc mật khẩu không hợp lệ.",
+      });
     mutate(formData);
   };
 
@@ -266,7 +254,7 @@ export const SignInForm = ({
                   id="mfa_code"
                   name="mfa_code"
                   placeholder="MFA code"
-                  onChange={handleOnchange}
+                  // onChange={handleOnchange}
                   // value={formData.mfa_code}
                 />
               </div>

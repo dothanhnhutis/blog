@@ -10,7 +10,6 @@ import {
   deleteSession,
   deleteSessionByKey,
   getAllSession,
-  validateMFAAccess,
 } from "@/redis/session";
 import { signInWithProviderCallbackSchema } from "@/schema/auth";
 import {

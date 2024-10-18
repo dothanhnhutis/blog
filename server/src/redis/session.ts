@@ -8,13 +8,16 @@ import {
   getKeyByPattern,
   setDataCache,
   setDataInMilisecondCache,
+  setDataInSecondCache,
 } from "./cache";
 import configs from "@/configs";
+import { User } from "@/schema/user";
 
 export type ISessionData = {
   id: string;
-  userId: string;
-  mfa: boolean;
+  // userId: string;
+  // mfa: boolean;
+  user: User;
   cookie: CookieOptions;
   reqInfo: {
     ip: string;
@@ -27,18 +30,16 @@ export type ISessionData = {
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60000;
 
 export const createSession = async ({
-  userId,
-  mfa,
+  user,
   reqIp,
   userAgent,
 }: {
-  userId: string;
-  mfa: boolean;
+  user: User;
   reqIp?: string;
   userAgent?: string;
 }) => {
   const sessionId = uuidv4();
-  const sessionKey = `${configs.SESSION_KEY_NAME}:${userId}:${sessionId}`;
+  const sessionKey = `${configs.SESSION_KEY_NAME}:${user.id}:${sessionId}`;
   const now = new Date();
   const cookieOpt = {
     path: "/",
@@ -49,8 +50,7 @@ export const createSession = async ({
 
   const sessionData: ISessionData = {
     id: sessionId,
-    userId,
-    mfa,
+    user,
     cookie: cookieOpt,
     reqInfo: {
       ip: reqIp || "",
@@ -69,10 +69,28 @@ export const createSession = async ({
   return { sessionKey, cookieOpt };
 };
 
-export const getSession = async (sessionKey: string) => {
-  const sessionCache = await getDataCache(sessionKey);
-  if (sessionCache == null) return;
+export const createMFASession = async (mfa: User["mfa"]) => {
+  const sessionId = uuidv4();
+  const sessionKey = `mfa:${sessionId}`;
+  await setDataInSecondCache(sessionKey, JSON.stringify(mfa), 60 * 5);
+  return sessionId;
+};
+
+export const getMFASession = async (mfaId: string) => {
   try {
+    const sessionCache = await getDataCache(mfaId);
+    if (sessionCache == null) return;
+    const sessionData = JSON.parse(sessionCache) as User["mfa"];
+    return sessionData;
+  } catch (error: any) {
+    console.log(`getMFASession() method error: `, error);
+  }
+};
+
+export const getSession = async (sessionKey: string) => {
+  try {
+    const sessionCache = await getDataCache(sessionKey);
+    if (sessionCache == null) return;
     const sessionData = JSON.parse(sessionCache) as ISessionData;
     return sessionData;
   } catch (error: any) {
@@ -103,16 +121,16 @@ export const sessionLastAccess = async (userId: string, sessionId: string) => {
   }
 };
 
-export const validateMFAAccess = async (
-  sessionKey: string,
-  sessionData: ISessionData
-) => {
-  await setDataCache(
-    sessionKey,
-    JSON.stringify({ ...sessionData, mfa: true }),
-    { keepTTL: true }
-  );
-};
+// export const validateMFAAccess = async (
+//   sessionKey: string,
+//   sessionData: ISessionData
+// ) => {
+//   await setDataCache(
+//     sessionKey,
+//     JSON.stringify({ ...sessionData, mfa: true }),
+//     { keepTTL: true }
+//   );
+// };
 
 export const getAllSession = async (userId: string) => {
   const keys = await getKeyByPattern(`${configs.SESSION_KEY_NAME}:${userId}:*`);

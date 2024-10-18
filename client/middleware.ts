@@ -57,32 +57,32 @@ export async function middleware(request: NextRequest) {
     routes.test(nextUrl.pathname)
   );
 
-  if (isPrivateRoute) {
-    if (!user) return redirect(request, DEFAULT_LOGOUT_REDIRECT);
+  // if (isPrivateRoute) {
+  //   if (!user) return redirect(request, DEFAULT_LOGOUT_REDIRECT);
 
-    if (!user.emailVerified) {
-      return redirect(request, EMAIL_VERIFY_ROUTE);
-    }
+  //   if (!user.emailVerified) {
+  //     return redirect(request, EMAIL_VERIFY_ROUTE);
+  //   }
 
-    // if (EMAIL_VERIFY_ROUTE == nextUrl.pathname) {
-    //   return redirect(request, DEFAULT_LOGIN_REDIRECT);
-    // }
+  //   // if (EMAIL_VERIFY_ROUTE == nextUrl.pathname) {
+  //   //   return redirect(request, DEFAULT_LOGIN_REDIRECT);
+  //   // }
 
-    if (user.gender == null || user.birthDate == null)
-      return redirect(request, COMPLETE_PROFILE_ROUTE);
+  //   if (user.gender == null || user.birthDate == null)
+  //     return redirect(request, COMPLETE_PROFILE_ROUTE);
 
-    // if (COMPLETE_PROFILE_ROUTE == nextUrl.pathname) {
-    //   return redirect(request, DEFAULT_LOGIN_REDIRECT);
-    // }
+  //   // if (COMPLETE_PROFILE_ROUTE == nextUrl.pathname) {
+  //   //   return redirect(request, DEFAULT_LOGIN_REDIRECT);
+  //   // }
 
-    const validRoute = roleAccessRoutes[user.role].some((routes) =>
-      routes.test(nextUrl.pathname)
-    );
+  //   const validRoute = roleAccessRoutes[user.role].some((routes) =>
+  //     routes.test(nextUrl.pathname)
+  //   );
 
-    if (!validRoute) {
-      return redirect(request, DEFAULT_LOGIN_REDIRECT);
-    }
-  }
+  //   if (!validRoute) {
+  //     return redirect(request, DEFAULT_LOGIN_REDIRECT);
+  //   }
+  // }
   //-----------------------------------
 
   // if (user) {

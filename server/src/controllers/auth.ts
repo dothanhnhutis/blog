@@ -5,7 +5,7 @@ import {
   PermissionError,
 } from "@/error-handler";
 import { getDataCache, setDataInSecondCache } from "@/redis/cache";
-import { createSession } from "@/redis/session";
+import { createMFASession, createSession } from "@/redis/session";
 import {
   RecoverAccountReq,
   ResetPasswordReq,
@@ -167,26 +167,32 @@ export async function signIn(
       "Your account has been disabled. Please contact the administrator"
     );
 
-  const { sessionKey, cookieOpt } = await createSession({
-    userId: user.id,
-    reqIp: req.ip || "",
-    mfa: user.mfa ? false : true,
-    userAgent: req.headers["user-agent"] || "",
-  });
-
-  return res
-    .status(StatusCodes.OK)
-    .cookie(
-      configs.SESSION_KEY_NAME,
-      encrypt(sessionKey, configs.SESSION_SECRET),
-      {
-        ...cookieOpt,
-      }
-    )
-    .json({
-      message: "Sign in success",
-      mfa: !!user.mfa,
+  if (!user.mfa) {
+    const { sessionKey, cookieOpt } = await createSession({
+      user,
+      reqIp: req.ip || "",
+      userAgent: req.headers["user-agent"] || "",
     });
+    return res
+      .status(StatusCodes.OK)
+      .cookie(
+        configs.SESSION_KEY_NAME,
+        encrypt(sessionKey, configs.SESSION_SECRET),
+        {
+          ...cookieOpt,
+        }
+      )
+      .json({
+        message: "Sign in success",
+      });
+  } else {
+    const mfaId = await createMFASession(user.mfa);
+
+    return res.status(StatusCodes.OK).json({
+      message: "Sign in success",
+      mfaId,
+    });
+  }
 }
 
 export async function resetPassword(
