@@ -28,6 +28,8 @@ app.use(
     origin: configs.CLIENT_URL,
     credentials: true,
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   })
 );
 

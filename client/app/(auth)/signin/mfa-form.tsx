@@ -7,7 +7,7 @@ import { SignInWithMFAInput } from "@/schemas/auth";
 import { isFetchApiError } from "@/service/fetch-api";
 import http from "@/service/http";
 import { useMutation } from "@tanstack/react-query";
-import { LoaderPinwheelIcon } from "lucide-react";
+import { LoaderCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -19,9 +19,9 @@ type MFAFormProps = {
 
 const MFAForm = ({ sessionId, btnBack }: MFAFormProps) => {
   const router = useRouter();
-
   const [code, setCode] = React.useState<string>("");
   const [error, setError] = React.useState<string>("");
+
   const { isPending, mutate } = useMutation({
     mutationFn: async () => {
       return (
@@ -34,16 +34,19 @@ const MFAForm = ({ sessionId, btnBack }: MFAFormProps) => {
         )
       ).data;
     },
-    onSettled() {
+
+    onMutate() {
       setCode("");
       setError("");
+      console.log("onSettled");
     },
     onSuccess() {
       router.push(DEFAULT_LOGIN_REDIRECT);
     },
     onError(error) {
-      console.log(error);
+      console.log("onError");
       if (isFetchApiError(error)) {
+        console.log(error.response?.data.message);
         setError(error.response?.data.message);
       }
     },
@@ -53,6 +56,7 @@ const MFAForm = ({ sessionId, btnBack }: MFAFormProps) => {
     e.preventDefault();
     if (code.length != 6) {
       setError("Mã MFA không hợp lệ");
+      setCode("");
     } else {
       mutate();
     }
@@ -89,17 +93,20 @@ const MFAForm = ({ sessionId, btnBack }: MFAFormProps) => {
               id="mfa_code"
               name="mfa_code"
               placeholder="MFA code"
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => {
+                setCode(e.target.value);
+                setError("");
+              }}
               value={code}
             />
-            {error != "" && (
+            {error.length > 0 && (
               <p className="text-red-500 text-xs font-bold">{error}</p>
             )}
           </div>
 
           <Button disabled={isPending} variant="default">
             {isPending && (
-              <LoaderPinwheelIcon className="h-4 w-4 animate-spin flex-shrink-0 mr-2" />
+              <LoaderCircleIcon className="h-4 w-4 animate-spin flex-shrink-0 mr-2" />
             )}
             Submit
           </Button>

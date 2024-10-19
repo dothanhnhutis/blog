@@ -2,7 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { z } from "zod";
-import { LoaderPinwheelIcon, OctagonAlertIcon } from "lucide-react";
+import { LoaderCircleIcon, OctagonAlertIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SignInInput } from "@/schemas/auth";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,9 @@ import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import http from "@/service/http";
 import { isFetchApiError } from "@/service/fetch-api";
 import MFAForm from "./mfa-form";
+
+import axios from "axios";
+
 export const SignInForm = ({
   oauth_error,
   email,
@@ -53,15 +56,31 @@ export const SignInForm = ({
 
   const { isPending, mutate, data, reset } = useMutation({
     mutationFn: async (input: SignInInput) => {
-      return (
-        await http.post<{ message: string; sessionId?: string }, SignInInput>(
-          "/auth/signin",
-          input
-        )
-      ).data;
-      // await signIn(
-      //   openMFACode ? input : { email: input.email, password: input.password }
-      // );
+      // const res = await fetch("http://localhost:4000/api/v1/auth/signin", {
+      //   method: "POST",
+      //   body: JSON.stringify(input),
+      //   cache: "no-cache",
+      //   headers: {
+      //     // Accept: "application/json, text/plain, */*",
+      //     "Content-Type": "application/json",
+      //   },
+      // });
+      // return await res.json();
+
+      const { data } = await axios.post<{
+        message: string;
+        sessionId?: string;
+      }>("http://localhost:4000/api/v1/auth/signin", input, {
+        withCredentials: true,
+      });
+      return data;
+
+      // return (
+      //   await http.post<{ message: string; sessionId?: string }, SignInInput>(
+      //     "/auth/signin",
+      //     input
+      //   )
+      // ).data;
     },
     onSettled() {
       setFormData({
@@ -69,32 +88,20 @@ export const SignInForm = ({
         password: "",
       });
     },
-    onSuccess({ sessionId }) {
-      if (sessionId) {
-        setOpenMFACode(true);
-      } else {
-        router.push(DEFAULT_LOGIN_REDIRECT);
-      }
-
-      // if (!success) {
-      //   if (data.message == "Your account is currently closed") {
-      //     handleReset(true);
-      //     setAccountSuspended(true);
-      //   } else if (data.message == "MFA code is required") {
-      //     setOpenMFACode(true);
-      //   } else {
-      //     handleReset();
-      //     setError({ success: false, message: data.message });
-      //   }
+    onSuccess(data) {
+      console.log(data);
+      // if (sessionId) {
+      //   setOpenMFACode(true);
       // } else {
       //   router.push(DEFAULT_LOGIN_REDIRECT);
       // }
     },
     onError(error) {
-      if (isFetchApiError(error)) {
-        handleReset();
-        setError({ success: false, message: error.response?.data.message });
-      }
+      console.log(error);
+      // if (isFetchApiError(error)) {
+      //   handleReset();
+      //   setError({ success: false, message: error.response?.data.message });
+      // }
     },
   });
 
@@ -223,7 +230,7 @@ export const SignInForm = ({
 
               <Button disabled={isPending} variant="default">
                 {!openMFACode && isPending && (
-                  <LoaderPinwheelIcon className="h-4 w-4 animate-spin flex-shrink-0 mr-2" />
+                  <LoaderCircleIcon className="h-4 w-4 animate-spin flex-shrink-0 mr-2" />
                 )}
                 Đăng nhập
               </Button>
