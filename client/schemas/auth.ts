@@ -12,6 +12,18 @@ export const signInSchema = z.object({
     invalid_type_error: "Password phải là chuỗi",
   }),
 });
+export const signInWithMFASchema = z.object({
+  sessionId: z.string({
+    required_error: "Mã MFA không hợp lệ",
+    invalid_type_error: "Mã MFA không hợp lệ",
+  }),
+  code: z
+    .string({
+      required_error: "Mã MFA không hợp lệ",
+      invalid_type_error: "Mã MFA không hợp lệ",
+    })
+    .length(6, "Mã MFA không hợp lệ"),
+});
 
 export const signUpSchema = z
   .object({
@@ -85,5 +97,7 @@ export const resetPasswordSchema = z
   });
 
 export type SignInInput = z.infer<typeof signInSchema>;
+export type SignInWithMFAInput = z.infer<typeof signInWithMFASchema>;
+
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

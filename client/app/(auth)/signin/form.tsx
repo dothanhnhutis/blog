@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import http from "@/service/http";
 import { isFetchApiError } from "@/service/fetch-api";
+import MFAForm from "./mfa-form";
 export const SignInForm = ({
   oauth_error,
   email,
@@ -50,30 +51,26 @@ export const SignInForm = ({
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleReset = (holdEmail?: boolean) => {
-    setFormData((prev) => ({
-      email: holdEmail ? prev.email : "",
-      password: "",
-      mfa_code: "",
-    }));
-    setAccountSuspended(false);
-    setError({ success: true, message: "" });
-    setOpenMFACode(false);
-  };
-
-  const { isPending, mutate } = useMutation({
+  const { isPending, mutate, data, reset } = useMutation({
     mutationFn: async (input: SignInInput) => {
-      return await http.post<{ message: string; mfa: boolean }, SignInInput>(
-        "/auth/signin",
-        input
-      );
+      return (
+        await http.post<{ message: string; sessionId?: string }, SignInInput>(
+          "/auth/signin",
+          input
+        )
+      ).data;
       // await signIn(
       //   openMFACode ? input : { email: input.email, password: input.password }
       // );
     },
-    onSuccess({ data }) {
-      console.log(data);
-      if (data.mfa) {
+    onSettled() {
+      setFormData({
+        email: "",
+        password: "",
+      });
+    },
+    onSuccess({ sessionId }) {
+      if (sessionId) {
         setOpenMFACode(true);
       } else {
         router.push(DEFAULT_LOGIN_REDIRECT);
@@ -101,6 +98,17 @@ export const SignInForm = ({
     },
   });
 
+  const handleReset = (holdEmail?: boolean) => {
+    reset();
+    setFormData((prev) => ({
+      email: holdEmail ? prev.email : "",
+      password: "",
+    }));
+    setAccountSuspended(false);
+    setError({ success: true, message: "" });
+    setOpenMFACode(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -109,12 +117,18 @@ export const SignInForm = ({
       !z.string().email().safeParse(formData.email).success ||
       formData.password.length < 8 ||
       formData.password.length > 40
-    )
+    ) {
+      setFormData((prev) => ({
+        email: "",
+        password: "",
+      }));
       setError({
         success: false,
         message: "Email hoặc mật khẩu không hợp lệ.",
       });
-    mutate(formData);
+    } else {
+      mutate(formData);
+    }
   };
 
   const handleReActivate = async () => {
@@ -155,7 +169,7 @@ export const SignInForm = ({
           </p>
         </div>
       )}
-      {!openMFACode ? (
+      {!data?.sessionId ? (
         <form
           onSubmit={handleSubmit}
           className="rounded-lg sm:border bg-card text-card-foreground sm:shadow-sm p-4 sm:p-6 sm:mx-auto sm:max-w-md transition-all"
@@ -224,53 +238,52 @@ export const SignInForm = ({
           </div>
         </form>
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-lg sm:border bg-card text-card-foreground sm:shadow-sm p-4 sm:p-6 sm:mx-auto sm:max-w-md transition-all"
-        >
-          <div className="flex flex-col space-y-1.5">
-            <h3 className="font-semibold tracking-tight text-2xl">
-              Multi-factor authentication
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Your account is secured using multi-factor authentication (MFA).
-              To finish signing in, turn on or view your MFA device and type the
-              authentication code below.
-            </p>
-          </div>
-          <div className="pt-6">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="mfa_code">MFA code</Label>
-                  <Link
-                    href={"#"}
-                    className="ml-auto inline-block text-sm underline "
-                  >
-                    Troubleshoot MFA
-                  </Link>
-                </div>
-                <Input
-                  id="mfa_code"
-                  name="mfa_code"
-                  placeholder="MFA code"
-                  // onChange={handleOnchange}
-                  // value={formData.mfa_code}
-                />
-              </div>
+        // <form className="rounded-lg sm:border bg-card text-card-foreground sm:shadow-sm p-4 sm:p-6 sm:mx-auto sm:max-w-md transition-all">
+        //   <div className="flex flex-col space-y-1.5">
+        //     <h3 className="font-semibold tracking-tight text-2xl">
+        //       Multi-factor authentication
+        //     </h3>
+        //     <p className="text-sm text-muted-foreground">
+        //       Your account is secured using multi-factor authentication (MFA).
+        //       To finish signing in, turn on or view your MFA device and type the
+        //       authentication code below.
+        //     </p>
+        //   </div>
+        //   <div className="pt-6">
+        //     <div className="grid gap-4">
+        //       <div className="grid gap-2">
+        //         <div className="flex items-center">
+        //           <Label htmlFor="mfa_code">MFA code</Label>
+        //           <Link
+        //             href={"#"}
+        //             className="ml-auto inline-block text-sm underline "
+        //           >
+        //             Troubleshoot MFA
+        //           </Link>
+        //         </div>
+        //         <Input
+        //           id="mfa_code"
+        //           name="mfa_code"
+        //           placeholder="MFA code"
+        //           // onChange={handleOnchange}
+        //           // value={formData.mfa_code}
+        //         />
+        //       </div>
 
-              <Button disabled={isPending} variant="default">
-                {openMFACode && isPending && (
-                  <LoaderPinwheelIcon className="h-4 w-4 animate-spin flex-shrink-0 mr-2" />
-                )}
-                Submit
-              </Button>
-              <Button variant="outline" onClick={() => handleReset()}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </form>
+        //       <Button disabled={isPending} variant="default">
+        //         {openMFACode && isPending && (
+        //           <LoaderPinwheelIcon className="h-4 w-4 animate-spin flex-shrink-0 mr-2" />
+        //         )}
+        //         Submit
+        //       </Button>
+        //       <Button variant="outline" onClick={() => handleReset()}>
+        //         Cancel
+        //       </Button>
+        //     </div>
+        //   </div>
+        // </form>
+
+        <MFAForm sessionId={data.sessionId} btnBack={handleReset} />
       )}
     </>
   );

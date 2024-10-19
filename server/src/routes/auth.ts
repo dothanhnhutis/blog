@@ -22,22 +22,18 @@ import {
   signInWithMFASchema,
   signupSchema,
 } from "@/schema/auth";
-import {
-  rateLimitRecover,
-  rateLimitSendReActivateAccount,
-} from "@/middleware/rateLimit";
+import { rateLimitEmail } from "@/middleware/rateLimit";
 
 const router: Router = express.Router();
 function authRouter(): Router {
+  router.get("/auth/confirm-email/:token", verifyEmail);
+  router.get("/auth/session/:token", getSession);
+  router.get("/auth/reactivate/:token", reActivateAccount);
   router.get(
     "/auth/:provider(google|facebook)/callback",
     signInWithProviderCallBack
   );
   router.get("/auth/:provider(google|facebook)", signInWithProvider);
-
-  router.get("/auth/confirm-email/:token", verifyEmail);
-  router.get("/auth/session/:token", getSession);
-  router.get("/auth/reactivate/:token", reActivateAccount);
 
   router.post("/auth/signup", validateResource(signupSchema), signUp);
   router.post(
@@ -49,7 +45,7 @@ function authRouter(): Router {
   router.post("/auth/signin", validateResource(signInSchema), signIn);
   router.post(
     "/auth/recover",
-    rateLimitRecover,
+    rateLimitEmail,
     validateResource(recoverAccountSchema),
     recoverAccount
   );
@@ -61,7 +57,7 @@ function authRouter(): Router {
   );
   router.post(
     "/auth/reactivate",
-    rateLimitSendReActivateAccount,
+    rateLimitEmail,
     validateResource(sendReActivateAccountSchema),
     sendReactivateAccount
   );

@@ -32,40 +32,12 @@ import { rateLimit } from "express-rate-limit";
 //   },
 // });
 
-export const rateLimitRecover = rateLimit({
+export const rateLimitEmail = rateLimit({
   windowMs: 1 * 60000,
   limit: 1,
   standardHeaders: "draft-7",
   legacyHeaders: false,
-  keyGenerator: function (req: Request<{}, {}, RecoverAccountReq["body"]>) {
-    return req.body.email;
-  },
-  handler: (req, res, next, options) => {
-    return res.status(options.statusCode).json({ message: options.message });
-  },
-});
-
-export const rateLimitSendReActivateAccount = rateLimit({
-  windowMs: 1 * 60000,
-  limit: 1,
-  standardHeaders: "draft-7",
-  legacyHeaders: false,
-  keyGenerator: function (
-    req: Request<{}, {}, SendReActivateAccountReq["body"]>
-  ) {
-    return req.body.email;
-  },
-  handler: (req, res, next, options) => {
-    return res.status(options.statusCode).json({ message: options.message });
-  },
-});
-
-export const rateLimitSendChangeEmail = rateLimit({
-  windowMs: 60000,
-  limit: 1,
-  standardHeaders: "draft-7",
-  legacyHeaders: false,
-  keyGenerator: function (req: Request<{}, {}, SendChangeEmailReq["body"]>) {
+  keyGenerator: function (req: Request<{}, {}, { email: string }>) {
     return req.body.email;
   },
   handler: (req, res, next, options) => {

@@ -290,6 +290,13 @@ export async function sendReactivateAccount(
     reActiveExpires: true,
   });
   if (!user) throw new BadRequestError("invalid email");
+  if (user.status == "ACTIVE")
+    throw new BadRequestError("Your account is active");
+  if (user.status == "DISABLED")
+    throw new BadRequestError(
+      "Your account has been locked please contact the administrator"
+    );
+
   let randomCharacters = user.reActiveToken;
   let date = user.reActiveExpires;
   if (
@@ -341,7 +348,7 @@ export async function reActivateAccount(
     throw new BadRequestError("Token has expired.");
 
   const user = await getUserByToken(data.type, data.session);
-  if (!user) throw new NotFoundError();
+  if (!user) throw new BadRequestError("Token has expired.");
   await editUserById(user.id, {
     status: "ACTIVE",
     reActiveExpires: new Date(),

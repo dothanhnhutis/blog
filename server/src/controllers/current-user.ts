@@ -62,6 +62,7 @@ export async function signOut(req: Request, res: Response) {
 export async function readAllSession(req: Request, res: Response) {
   const { user } = req.sessionData!;
   const sessions = await getAllSession(user.id);
+  console.log(sessions);
   res.status(StatusCodes.OK).json(
     sessions.map((s) => {
       const {
@@ -93,11 +94,11 @@ export async function removeSession(
 }
 
 export async function disactivate(req: Request, res: Response) {
-  const { id } = req.user!;
-  await editUserById(id, {
+  const { user } = req.sessionData!;
+  await editUserById(user.id, {
     status: "SUSPENDED",
   });
-  if (req.sessionData) await deleteSession(id, req.sessionData.id);
+  if (req.sessionData) await deleteSession(user.id);
   res.status(StatusCodes.OK).clearCookie(configs.SESSION_KEY_NAME).json({
     message: "Your account has been disabled. You can reactivate at any time!",
   });

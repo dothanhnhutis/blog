@@ -28,10 +28,7 @@ import {
   sendChangeEmailSchema,
   setupMFASchema,
 } from "@/schema/user";
-import {
-  rateLimitSendChangeEmail,
-  rateLimitUserId,
-} from "@/middleware/rateLimit";
+import { rateLimitEmail, rateLimitUserId } from "@/middleware/rateLimit";
 import {
   createUser,
   readUserById,
@@ -98,17 +95,11 @@ function userRouter(): Router {
   );
   router.post(
     "/users/change-email/send",
-    rateLimitSendChangeEmail,
+    rateLimitEmail,
     authMiddleware(),
     validateResource(sendChangeEmailSchema),
     sendChangeEmail
   );
-  // router.post(
-  //   "/users/sessions",
-  //   authMiddleware({ mfa: false }),
-  //   validateResource(validateSessionSchema),
-  //   validateSession
-  // );
 
   router.patch(
     "/users/password",
