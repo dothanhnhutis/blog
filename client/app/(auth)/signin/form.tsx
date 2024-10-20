@@ -56,31 +56,12 @@ export const SignInForm = ({
 
   const { isPending, mutate, data, reset } = useMutation({
     mutationFn: async (input: SignInInput) => {
-      // const res = await fetch("http://localhost:4000/api/v1/auth/signin", {
-      //   method: "POST",
-      //   body: JSON.stringify(input),
-      //   cache: "no-cache",
-      //   headers: {
-      //     // Accept: "application/json, text/plain, */*",
-      //     "Content-Type": "application/json",
-      //   },
-      // });
-      // return await res.json();
-
-      const { data } = await axios.post<{
-        message: string;
-        sessionId?: string;
-      }>("http://localhost:4000/api/v1/auth/signin", input, {
-        withCredentials: true,
-      });
-      return data;
-
-      // return (
-      //   await http.post<{ message: string; sessionId?: string }, SignInInput>(
-      //     "/auth/signin",
-      //     input
-      //   )
-      // ).data;
+      return (
+        await http.post<{ message: string; sessionId?: string }, SignInInput>(
+          "/auth/signin",
+          input
+        )
+      ).data;
     },
     onSettled() {
       setFormData({
@@ -88,20 +69,18 @@ export const SignInForm = ({
         password: "",
       });
     },
-    onSuccess(data) {
-      console.log(data);
-      // if (sessionId) {
-      //   setOpenMFACode(true);
-      // } else {
-      //   router.push(DEFAULT_LOGIN_REDIRECT);
-      // }
+    onSuccess({ sessionId }) {
+      if (sessionId) {
+        setOpenMFACode(true);
+      } else {
+        router.push(DEFAULT_LOGIN_REDIRECT);
+      }
     },
     onError(error) {
-      console.log(error);
-      // if (isFetchApiError(error)) {
-      //   handleReset();
-      //   setError({ success: false, message: error.response?.data.message });
-      // }
+      if (isFetchApiError(error)) {
+        handleReset();
+        setError({ success: false, message: error.response?.data.message });
+      }
     },
   });
 

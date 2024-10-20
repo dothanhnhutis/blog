@@ -35,11 +35,11 @@ const MFAForm = ({ sessionId, btnBack }: MFAFormProps) => {
       ).data;
     },
 
-    onMutate() {
-      setCode("");
-      setError("");
-      console.log("onSettled");
-    },
+    // onMutate() {
+    //   setCode("");
+    //   setError("");
+    //   console.log("onSettled");
+    // },
     onSuccess() {
       router.push(DEFAULT_LOGIN_REDIRECT);
     },

@@ -7,6 +7,11 @@ import { UserProfile } from "@/utils/oauth";
 import { signJWT } from "@/utils/jwt";
 import configs from "@/configs";
 import { emaiEnum, sendMail } from "@/utils/nodemailer";
+import {
+  getUserCacheByEmail,
+  getUserCacheById,
+  setUserCache,
+} from "@/redis/user";
 
 export const userSelectDefault: Prisma.UserSelect = {
   id: true,
@@ -44,6 +49,10 @@ export async function getUserByEmail(
   email: string,
   select?: Prisma.UserSelect
 ) {
+  const userCache = await getUserCacheByEmail(email);
+  if (userCache) {
+    return userCache;
+  }
   const user = await prisma.user.findUnique({
     where: {
       email,
@@ -53,10 +62,16 @@ export async function getUserByEmail(
       ...select,
     }),
   });
+  if (user) await setUserCache(user);
   return user;
 }
 
 export async function getUserById(id: string, select?: Prisma.UserSelect) {
+  const userCache = await getUserCacheById(id);
+  if (userCache) {
+    return userCache;
+  }
+
   const user = await prisma.user.findUnique({
     where: {
       id,
@@ -66,6 +81,7 @@ export async function getUserById(id: string, select?: Prisma.UserSelect) {
       ...select,
     }),
   });
+  if (user) await setUserCache(user);
   return user;
 }
 
@@ -329,6 +345,8 @@ export async function insertUserByAdmin(
     }),
   });
 
+  await setUserCache(user);
+
   await sendMail({
     template: emaiEnum.VERIFY_EMAIL,
     receiver: email,
@@ -371,6 +389,8 @@ export async function insertUserWithPassword(
       ...select,
     }),
   });
+
+  await setUserCache(user);
 
   await sendMail({
     template: emaiEnum.SIGNUP,
