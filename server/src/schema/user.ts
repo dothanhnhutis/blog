@@ -433,9 +433,15 @@ export type User = {
   id: string;
   email: string | null;
   emailVerified: boolean;
+  // emailVerificationExpires: Date | null;
+  // emailVerificationToken: string | null;
   role: Role;
   status: UserStatus;
   password: string | null;
+  // passwordResetToken: string | null;
+  // passwordResetExpires: Date | null;
+  // reActiveToken: string | null;
+  // reActiveExpires: Date | null;
   fullName: string | null;
   birthDate: string | null;
   gender: "MALE" | "FEMALE" | "OTHER" | null;
@@ -449,10 +455,10 @@ export type User = {
     createdAt: Date;
     updatedAt: Date;
   } | null;
-  oauthProviders: {
-    provider: string;
-    providerId: string;
-  }[];
+  // oauthProviders: {
+  //   provider: string;
+  //   providerId: string;
+  // }[];
   createdAt: Date;
   updatedAt: Date;
 };

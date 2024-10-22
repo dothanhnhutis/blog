@@ -285,10 +285,7 @@ export async function sendReactivateAccount(
   req: Request<{}, {}, SendReActivateAccountReq["body"]>,
   res: Response
 ) {
-  const user = await getUserByEmail(req.body.email, {
-    reActiveToken: true,
-    reActiveExpires: true,
-  });
+  const user = await getUserByEmail(req.body.email);
   if (!user) throw new BadRequestError("invalid email");
   if (user.status == "ACTIVE")
     throw new BadRequestError("Your account is active");

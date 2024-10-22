@@ -35,19 +35,13 @@ export const userSelectDefault: Prisma.UserSelect = {
       updatedAt: true,
     },
   },
-  oauthProviders: {
-    select: {
-      provider: true,
-      providerId: true,
-    },
-  },
   createdAt: true,
   updatedAt: true,
 };
 // Read
 export async function getUserByEmail(
-  email: string,
-  select?: Prisma.UserSelect
+  email: string
+  // select?: Prisma.UserSelect
 ) {
   const userCache = await getUserCacheByEmail(email);
   if (userCache) {
@@ -59,7 +53,7 @@ export async function getUserByEmail(
     },
     select: Prisma.validator<Prisma.UserSelect>()({
       ...userSelectDefault,
-      ...select,
+      // ...select,
     }),
   });
   if (user) await setUserCache(user);
