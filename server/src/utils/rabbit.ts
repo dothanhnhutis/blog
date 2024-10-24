@@ -31,6 +31,9 @@ async function sendTest() {
   const message = "This is a test message";
 
   channel.sendToQueue(mainQueue, Buffer.from(message));
+  // setTimeout(() => {
+  await channel.close();
+  // }, 2000);
 }
 
 async function consumeTest() {
@@ -65,8 +68,11 @@ async function consumeTest() {
         );
         setTimeout(() => {
           channel.reject(msg, false); // Từ chối tin nhắn và không requeue, nó sẽ được gửi đến DLX
-          channel.nack(msg);
-        }, 2000);
+        }, 10000);
+        // setTimeout(() => {
+        //   console.log("ack");
+        //   channel.ack(msg);
+        // }, 2000);
       }
     },
     {
@@ -75,41 +81,12 @@ async function consumeTest() {
   );
 
   // 6. Nhận tin nhắn từ Dead Letter Queue
-  // await channel.consume(dlQueue, (msg) => {
-  //   if (msg !== null) {
-  //     console.log(`Message received from DLX: ${msg.content.toString()}`);
-  //     channel.ack(msg);
-  //   }
-  // });
+  await channel.consume(dlQueue, (msg) => {
+    if (msg !== null) {
+      console.log(`Message received from DLX: ${msg.content.toString()}`);
+      // channel.ack(msg);
+    }
+  });
 }
-
-// type sendQuereOtp = {
-//   confirmChannel: boolean;
-//   prefetch: boolean;
-// };
-
-// async function sendQuere(
-//   queueName: string,
-//   msg: string,
-//   option?: Partial<sendQuereOtp>
-// ) {
-//   const opt: sendQuereOtp = {
-//     confirmChannel: false,
-//     prefetch: false,
-//   };
-//   if (!connection) {
-//     throw new Error("Connection to the RabbitMQ cluster failed");
-//   }
-//   try {
-//     const channel = opt.confirmChannel
-//       ? await connection.createConfirmChannel()
-//       : await connection.createChannel();
-//     await channel.assertQueue(queueName, { durable: true });
-
-//     channel.sendToQueue(queueName, Buffer.from(msg), {
-//       persistent: true,
-//     });
-//   } catch (error: unknown) {}
-// }
 
 export default { connect, createChannel, consumeTest, sendTest };
